@@ -46,7 +46,7 @@ describe("End-to-End Service Flow: Wallet Creation & Vault Recovery", () => {
     expect(recoveredWallet.accounts[0].address).toBe(wallet.accounts[0].address)
 
     // 5. Verify the derived account from mnemonic matches recovered wallet
-    const derived = walletService.deriveAccount(recoveredWallet.mnemonic, 0)
+    const derived = walletService.deriveAccount(recoveredWallet.mnemonic!, 0)
     expect(derived.address).toBe(wallet.accounts[0].address)
   })
 

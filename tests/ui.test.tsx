@@ -11,7 +11,7 @@ import { DashboardScreen } from "../src/ui/screens/DashboardScreen.js"
 import { ReceiveScreen } from "../src/ui/screens/ReceiveScreen.js"
 import { UnlockScreen } from "../src/ui/screens/UnlockScreen.js"
 import { ResetModal } from "../src/ui/components/ResetModal.js"
-import { LogoBanner, TERMIWALLET_ASCII_BANNER } from "../src/ui/components/LogoBanner.js"
+import { LogoBanner } from "../src/ui/components/LogoBanner.js"
 import type { Account } from "../src/core/types.js"
 
 registerQRCode()
@@ -69,6 +69,8 @@ describe("UI Screens Rendering (Iteration 2)", () => {
       address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       index: 0,
       label: "Account 1",
+      type: "hd",
+      createdAt: new Date().toISOString(),
     }
     const setup = await testRender(
       <ContainerProvider container={container}>
@@ -90,6 +92,8 @@ describe("UI Screens Rendering (Iteration 2)", () => {
       address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       index: 0,
       label: "Account 1",
+      type: "hd",
+      createdAt: new Date().toISOString(),
     }
     const setup = await testRender(
       <ContainerProvider container={container}>
@@ -136,7 +140,7 @@ describe("UI Screens Rendering (Iteration 2)", () => {
       const frame = setup.captureCharFrame()
       expect(frame).toContain("Test Subtitle")
       expect(frame).toContain("Test Description")
-      expect(frame).toContain("|_   _|")
+      expect(frame).toContain("▀█▀ █▀▀")
       setup.renderer.destroy()
     })
 
@@ -149,7 +153,7 @@ describe("UI Screens Rendering (Iteration 2)", () => {
       )
       await setup.renderOnce()
       const frame = setup.captureCharFrame()
-      expect(frame).toContain("|_   _|")
+      expect(frame).toContain("▀█▀ █▀▀")
       expect(frame).toContain("Welcome to TermiWallet")
       expect(frame).toContain("[1] Create New Wallet")
       setup.renderer.destroy()
@@ -164,7 +168,7 @@ describe("UI Screens Rendering (Iteration 2)", () => {
       )
       await setup.renderOnce()
       const frame = setup.captureCharFrame()
-      expect(frame).toContain("|_   _|")
+      expect(frame).toContain("▀█▀ █▀▀")
       expect(frame).toContain("Set Master Password")
       setup.renderer.destroy()
     })
@@ -178,7 +182,7 @@ describe("UI Screens Rendering (Iteration 2)", () => {
       )
       await setup.renderOnce()
       const frame = setup.captureCharFrame()
-      expect(frame).toContain("|_   _|")
+      expect(frame).toContain("▀█▀ █▀▀")
       expect(frame).toContain("Unlock Your Account")
       setup.renderer.destroy()
     })

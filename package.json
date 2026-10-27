@@ -8,8 +8,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "test": "bun test",
-    "typecheck": "bun x tsc --noEmit",
-    "generate:logo": "bun run scripts/generate-logo.ts"
+    "typecheck": "bun x tsc --noEmit"
   },
   "dependencies": {
     "@opentui/core": "^0.7.0",
@@ -20,11 +19,9 @@
     "viem": "^2.57.12"
   },
   "devDependencies": {
-    "@types/figlet": "^1.7.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "bun-types": "^1.4.4",
-    "figlet": "^1.12.0",
     "typescript": "^7.0.2"
   }
 }

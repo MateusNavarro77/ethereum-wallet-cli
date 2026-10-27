@@ -9,7 +9,6 @@
     "jsxImportSource": "@opentui/react",
     "allowJs": true,
     "strict": true,
-    "downlevelIteration": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,

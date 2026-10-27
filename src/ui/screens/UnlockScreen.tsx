@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useKeyboard, useRenderer } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { LogoBanner } from "../components/LogoBanner.js"
 import { ResetModal } from "../components/ResetModal.js"
 import { useUnlock } from "../hooks/index.js"
 import type { WalletData } from "../../core/types.js"
@@ -64,17 +65,10 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
             width: 68,
           }}
         >
-          <box style={{ marginBottom: 1 }}>
-            <text fg="#60A5FA">
-              <b>Unlock Your Sepolia Account</b>
-            </text>
-          </box>
-
-          <box style={{ marginBottom: 1 }}>
-            <text fg="#D1D5DB">
-              Enter your master password to unlock and manage your wallet.
-            </text>
-          </box>
+          <LogoBanner
+            subtitle="Unlock Your Account"
+            description="Enter your master password to unlock and manage your wallet."
+          />
 
           <box
             title=" Enter Password "

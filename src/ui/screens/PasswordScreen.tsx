@@ -1,6 +1,7 @@
 import { useKeyboard } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { LogoBanner } from "../components/LogoBanner.js"
 import { usePasswordForm } from "../hooks/index.js"
 
 interface PasswordScreenProps {
@@ -69,17 +70,10 @@ export function PasswordScreen({
             width: 68,
           }}
         >
-          <box style={{ marginBottom: 1 }}>
-            <text fg="#60A5FA">
-              <b>{title}</b>
-            </text>
-          </box>
-
-          <box style={{ marginBottom: 1 }}>
-            <text fg="#D1D5DB">
-              Choose a secure password to encrypt your wallet vault locally.
-            </text>
-          </box>
+          <LogoBanner
+            subtitle={title}
+            description="Choose a secure password to encrypt your wallet vault locally."
+          />
 
           {/* Password Field */}
           <box

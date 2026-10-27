@@ -58,7 +58,7 @@ export function DashboardScreen({ account, onReset }: DashboardScreenProps) {
         justifyContent: "space-between",
       }}
     >
-      <Header subtitle="Sepolia Dashboard" />
+      <Header subtitle="Dashboard" />
 
       {/* Main 2-Column Responsive Dashboard Body */}
       <box
@@ -104,7 +104,7 @@ export function DashboardScreen({ account, onReset }: DashboardScreenProps) {
 
           {/* Balance Card */}
           <box
-            title=" Sepolia Balance "
+            title=" Balance "
             style={{
               border: true,
               borderColor: "#3B82F6",

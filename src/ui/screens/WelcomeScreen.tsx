@@ -1,6 +1,7 @@
 import { useKeyboard, useRenderer } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { LogoBanner } from "../components/LogoBanner.js"
 
 interface WelcomeScreenProps {
   onCreateNew: () => void
@@ -42,24 +43,17 @@ export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
       >
         <box
           style={{
-            width: 64,
+            width: 72,
             border: true,
             borderColor: "#3B82F6",
             padding: 1,
             flexDirection: "column",
           }}
         >
-          <box style={{ marginBottom: 1, alignItems: "center" }}>
-            <text fg="#60A5FA">
-              <b>Welcome to TermiWallet</b>
-            </text>
-          </box>
-
-          <box style={{ marginBottom: 1 }}>
-            <text fg="#D1D5DB">
-              A keyboard-driven Ethereum terminal wallet for Sepolia testnet.
-            </text>
-          </box>
+          <LogoBanner
+            subtitle="Welcome to TermiWallet"
+            description="A keyboard-driven Ethereum terminal wallet for Sepolia testnet."
+          />
 
           <box
             style={{

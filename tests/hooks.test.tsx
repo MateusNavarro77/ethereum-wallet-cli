@@ -1,6 +1,9 @@
 import { describe, expect, it } from "bun:test"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import { testRender } from "@opentui/react/test-utils"
 import { createDefaultContainer } from "../src/container/index.js"
+import { StorageService } from "../src/services/storage.service.js"
 import {
   useBalance,
   useClipboardNotification,
@@ -173,7 +176,9 @@ describe("UI Custom Hooks", () => {
     })
 
     it("authenticates and decrypts vault on correct password", async () => {
+      const tempVault = join(tmpdir(), `termiwallet-hook-test-${Date.now()}.json`)
       const container = createDefaultContainer()
+      container.registerInstance("storageService", new StorageService(tempVault))
       const cryptoService = container.resolve("cryptoService")
       const storageService = container.resolve("storageService")
 

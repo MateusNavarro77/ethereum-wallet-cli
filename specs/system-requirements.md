@@ -37,10 +37,11 @@ TermiWallet lets a user create or import accounts, view balances, send and recei
 
 ### 1.4 Assumptions and constraints
 - The application runs on macOS, Linux, and Windows terminals (Windows via WSL or a modern terminal such as Windows Terminal).
-- The implementation is TypeScript on the Node.js runtime using OpenTUI. OpenTUI's Node.js support requires Node.js 26.4.0 or later, ECMAScript modules (ESM), and the `--experimental-ffi` flag, because the native core is loaded through Node's experimental FFI. CommonJS (`require("@opentui/core")`) is not supported.
-- The UI binding shall be Solid (`@opentui/solid`) or the standalone Core API. OpenTUI's own CI covers Solid on Node.js (source and packed lanes on Linux x64) but has no dedicated Node.js lane for React, so React is not recommended for the Node.js target.
-- Bun is not a target runtime for v1. Bun-only OpenTUI features (`@opentui/three`, runtime plugins) shall not be used.
-- OpenTUI is still in development and the Node.js FFI path is experimental. This risk is accepted for v1 and tracked in section 10.
+- The implementation is TypeScript on the Bun runtime (1.3.14 or later, the minimum OpenTUI supports) using OpenTUI. Bun is OpenTUI's primary runtime, so no additional runtime flags are required. Bun 1.4.0 or later is required on native Windows arm64.
+- The UI binding shall be React (`@opentui/react`) or Solid (`@opentui/solid`); the standalone Core API is also permitted. The binding choice is tracked in section 10.
+- npm packages are used through Bun's npm-compatible package manager. Dependencies shall be verified to work under Bun (including any native addons) and tested with `bun test`.
+- Node.js is not a target runtime for v1. The Node.js path requires Node.js 26.4.0 or later with `--experimental-ffi` and is not used.
+- OpenTUI is still in development. This risk is accepted for v1 and tracked in section 10.
 - The user supplies or selects RPC endpoints; the application does not operate its own backend.
 - The user has network access for any online operation. Offline use is limited to viewing cached data and, optionally, offline signing.
 
@@ -261,7 +262,6 @@ History data requires a source such as an indexer API or an explorer API; the ch
 | NFR-SEC-06 | Remote responses (RPC, price, token metadata) shall be treated as untrusted and validated. |
 | NFR-SEC-07 | The application shall verify the chain ID reported by the RPC before signing a transaction, to avoid cross-chain replay and wrong-network sends. |
 | NFR-SEC-08 | Dependencies shall be minimal, pinned, and audited; a lockfile is mandatory. This includes the native OpenTUI packages, which run as native code in the same process as the signing module. |
-| NFR-SEC-11 | If the Node.js permission model (`--permission`) is enabled, only the permissions the application needs shall be granted (for FFI, `--allow-ffi` plus read access to the native library). |
 | NFR-SEC-09 | Secrets shall not be accepted through command-line arguments or environment variables in a way that exposes them in process listings or shell history. |
 | NFR-SEC-10 | Debug logging, if present, shall be opt-in and shall redact addresses on request. |
 
@@ -286,10 +286,11 @@ History data requires a source such as an indexer API or an explorer API; the ch
 - All errors shall state what happened and what the user can do next.
 
 ### 5.6 Portability and compatibility
-- Requires Node.js 26.4.0 or later, started with `--experimental-ffi` (the launcher shall pass this flag so users do not have to).
-- Supported on macOS (x64, arm64), Linux (x64, arm64, glibc and musl), and Windows (x64, arm64, native terminals or WSL), subject to the native OpenTUI packages available for each target. OpenTUI's Node.js CI currently runs on macOS arm64, Linux x64, and Windows x64, so other targets shall be tested by this project before release.
+- Runs on Bun 1.3.14 or later (Bun 1.4.0 or later on native Windows arm64).
+- Supported on macOS (x64, arm64), Linux (x64, arm64, glibc and musl), and Windows (x64, arm64, native terminals or WSL), subject to the native OpenTUI packages available for each target. Targets shall be tested by this project before release, since an available native package does not prove runtime parity.
 - On Linux with musl (e.g., Alpine), the `OPENTUI_LIBC=musl` environment variable shall be set before the first OpenTUI import, and the C++ runtime libraries (`libstdc++`, `libgcc`) may need to be installed.
 - Native OpenTUI packages are optional dependencies and shall not be omitted at install time.
+- The application may be distributed as a standalone executable built with `bun build --compile`, in addition to installation from the package registry.
 - Works over SSH sessions and inside terminal multiplexers (tmux, screen).
 - Behaves correctly with common terminals (iTerm2, Alacritty, kitty, GNOME Terminal, Windows Terminal).
 
@@ -380,9 +381,10 @@ History data requires a source such as an indexer API or an explorer API; the ch
 
 - Which history source will be used (indexer API, explorer API, or local log scanning)?
 - Which network list and default RPCs ship in the box?
-- How will the application be distributed and launched with `--experimental-ffi` (npm `bin` script that spawns Node with the flag, a Node.js single executable application, or another approach)?
-- Is the experimental Node.js FFI path acceptable for a wallet at v1, or should a Bun fallback be kept viable?
-- Solid or standalone Core API for the UI binding on Node.js (React has no dedicated Node.js CI lane)?
+- How will the application be distributed (package registry install, standalone executable via `bun build --compile`, or both)?
+- Is OpenTUI's pre-production status acceptable for a wallet at v1, and is keeping the UI layer replaceable (see 5.7) enough mitigation?
+- React, Solid, or the standalone Core API for the UI binding?
+- Do all chosen npm dependencies (including any native addons such as OS keychain bindings) work under Bun?
 - Which library for the chain layer (viem is the current assumption) and for key derivation?
 - Should the wallet file support multiple wallets or exactly one?
 - Is an OS keychain integration desired in v1?

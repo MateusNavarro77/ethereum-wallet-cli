@@ -4,6 +4,7 @@ import { WalletService } from "../services/wallet.service.js"
 import { StorageService } from "../services/storage.service.js"
 import { RpcService } from "../services/rpc.service.js"
 import { ClipboardService } from "../services/clipboard.service.js"
+import { KeystoreService } from "../services/keystore.service.js"
 
 export class ServiceContainer {
   private factories = new Map<ServiceToken, (c: ServiceContainer) => unknown>()
@@ -78,6 +79,7 @@ export function createDefaultContainer(): ServiceContainer {
   container.registerSingleton("storageService", () => new StorageService())
   container.registerSingleton("rpcService", () => new RpcService())
   container.registerSingleton("clipboardService", () => new ClipboardService())
+  container.registerSingleton("keystoreService", () => new KeystoreService())
 
   return container
 }

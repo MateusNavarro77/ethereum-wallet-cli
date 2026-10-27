@@ -8,7 +8,7 @@ import { useUnlock } from "../hooks/index.js"
 import type { WalletData } from "../../core/types.js"
 
 interface UnlockScreenProps {
-  onUnlocked: (wallet: WalletData) => void
+  onUnlocked: (wallet: WalletData, password?: string) => void
   onReset: () => void
 }
 

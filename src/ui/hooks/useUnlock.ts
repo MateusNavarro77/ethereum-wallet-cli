@@ -3,7 +3,7 @@ import { useService } from "../context.js"
 import type { WalletData } from "../../core/types.js"
 
 export interface UseUnlockOptions {
-  onUnlocked: (wallet: WalletData) => void
+  onUnlocked: (wallet: WalletData, password?: string) => void
 }
 
 export interface UseUnlockResult {
@@ -15,11 +15,12 @@ export interface UseUnlockResult {
 }
 
 /**
- * Custom hook to encapsulate wallet unlocking and vault decryption.
+ * Custom hook to encapsulate wallet unlocking, vault decryption, and wallet data migration.
  */
 export function useUnlock({ onUnlocked }: UseUnlockOptions): UseUnlockResult {
   const cryptoService = useService("cryptoService")
   const storageService = useService("storageService")
+  const walletService = useService("walletService")
 
   const [password, setPassword] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
@@ -36,13 +37,14 @@ export function useUnlock({ onUnlocked }: UseUnlockOptions): UseUnlockResult {
       setErrorMessage("")
       const vault = await storageService.loadVault()
       const decrypted = await cryptoService.decrypt(vault, password)
-      const wallet = JSON.parse(decrypted) as WalletData
-      onUnlocked(wallet)
+      const rawWallet = JSON.parse(decrypted)
+      const wallet = walletService.migrateWalletData(rawWallet)
+      onUnlocked(wallet, password)
     } catch {
       setErrorMessage("Incorrect password. Please try again.")
       setIsLoading(false)
     }
-  }, [password, cryptoService, storageService, onUnlocked])
+  }, [password, cryptoService, storageService, walletService, onUnlocked])
 
   return {
     password,
@@ -52,4 +54,3 @@ export function useUnlock({ onUnlocked }: UseUnlockOptions): UseUnlockResult {
     handleUnlock,
   }
 }
-

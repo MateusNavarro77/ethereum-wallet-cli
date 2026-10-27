@@ -10,6 +10,7 @@ export function App() {
   const {
     step,
     setStep,
+    wallet,
     mnemonicPhrase,
     activeAccount,
     loadingOverlay,
@@ -22,6 +23,16 @@ export function App() {
     handleImportPasswordComplete,
     handleUnlocked,
     handleResetVault,
+    handleSelectActiveAccount,
+    handleAddDerivedAccount,
+    handleImportPrivateKey,
+    handleImportKeystore,
+    handleAddWatchOnly,
+    handleRenameAccount,
+    handleToggleHideAccount,
+    handleRemoveAccount,
+    handleExportPrivateKey,
+    handleExportMnemonic,
   } = useWalletFlow()
 
   if (step === "initializing" || loadingOverlay) {
@@ -142,6 +153,17 @@ export function App() {
       <DashboardScreen
         account={activeAccount}
         onReset={handleResetVault}
+        wallet={wallet || undefined}
+        onSelectAccount={handleSelectActiveAccount}
+        onAddDerived={handleAddDerivedAccount}
+        onImportPrivateKey={handleImportPrivateKey}
+        onImportKeystore={handleImportKeystore}
+        onAddWatchOnly={handleAddWatchOnly}
+        onRename={handleRenameAccount}
+        onToggleHide={handleToggleHideAccount}
+        onRemove={handleRemoveAccount}
+        onExportPrivateKey={handleExportPrivateKey}
+        onExportMnemonic={handleExportMnemonic}
       />
     )
   }

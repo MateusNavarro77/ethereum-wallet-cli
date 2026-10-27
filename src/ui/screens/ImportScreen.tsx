@@ -10,10 +10,12 @@ interface ImportScreenProps {
 
 export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
   const {
+    wordCount,
     words,
     focusedIndex,
     errorMessage,
     setFocusedIndex,
+    toggleWordCount,
     handleWordChange,
     handleProceed,
   } = useImportMnemonic({ onComplete })
@@ -22,22 +24,26 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
     if (key.name === "escape") {
       onCancel()
     } else if (key.name === "tab") {
-      setFocusedIndex((prev) => (prev + 1) % 12)
+      setFocusedIndex((prev) => (prev + 1) % wordCount)
     } else if (key.name === "return") {
-      if (focusedIndex === 11) {
+      if (focusedIndex === wordCount - 1) {
         handleProceed()
       } else {
-        setFocusedIndex((prev) => (prev + 1) % 12)
+        setFocusedIndex((prev) => (prev + 1) % wordCount)
       }
     } else if (key.name === "down") {
-      setFocusedIndex((prev) => (prev + 1 < 12 ? prev + 1 : prev))
+      setFocusedIndex((prev) => (prev + 1 < wordCount ? prev + 1 : prev))
     } else if (key.name === "up") {
       setFocusedIndex((prev) => (prev - 1 >= 0 ? prev - 1 : prev))
     }
   })
 
-  // 4 rows x 3 columns
-  const rows = [0, 1, 2, 3]
+  // Arrange into rows and columns
+  // For 12 words: 4 rows x 3 cols
+  // For 24 words: 8 rows x 3 cols
+  const cols = 3
+  const numRows = wordCount / cols
+  const rows = Array.from({ length: numRows }, (_, i) => i)
 
   return (
     <box
@@ -67,86 +73,45 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
             flexDirection: "column",
           }}
         >
-          <box style={{ marginBottom: 1 }}>
+          <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
             <text fg="#60A5FA">
-              <b>Enter Your 12-Word Recovery Phrase</b>
+              <b>Enter Your {wordCount}-Word Recovery Phrase</b>
             </text>
+            <text fg="#34D399">[{wordCount} Words]</text>
           </box>
 
           <box style={{ marginBottom: 1 }}>
             <text fg="#9CA3AF">
-              Tip: You can paste your entire 12-word phrase into word #1 to auto-fill all boxes.
+              Tip: Paste entire phrase into #1 to auto-split. Press [T] to toggle 12/24 words.
             </text>
           </box>
 
-          {/* 12 Numbered Inputs arranged in 3 columns */}
+          {/* Numbered Inputs arranged in 3 columns */}
           <box style={{ flexDirection: "column", marginBottom: 1 }}>
             {rows.map((r) => {
-              const col1 = r
-              const col2 = r + 4
-              const col3 = r + 8
+              const colIndices = Array.from({ length: cols }, (_, c) => r + c * numRows)
 
               return (
                 <box key={r} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
-                  {/* Col 1 */}
-                  <box
-                    title={` #${String(col1 + 1).padStart(2, " ")} `}
-                    style={{
-                      border: true,
-                      borderColor: focusedIndex === col1 ? "#60A5FA" : "#4B5563",
-                      width: 24,
-                      height: 3,
-                    }}
-                  >
-                    <input
-                      placeholder="word..."
-                      value={words[col1]}
-                      onInput={(val) => handleWordChange(col1, val)}
-                      onSubmit={() => setFocusedIndex((prev) => (prev + 1) % 12)}
-                      focused={focusedIndex === col1}
-                    />
-                  </box>
-
-                  {/* Col 2 */}
-                  <box
-                    title={` #${String(col2 + 1).padStart(2, " ")} `}
-                    style={{
-                      border: true,
-                      borderColor: focusedIndex === col2 ? "#60A5FA" : "#4B5563",
-                      width: 24,
-                      height: 3,
-                    }}
-                  >
-                    <input
-                      placeholder="word..."
-                      value={words[col2]}
-                      onInput={(val) => handleWordChange(col2, val)}
-                      onSubmit={() => setFocusedIndex((prev) => (prev + 1) % 12)}
-                      focused={focusedIndex === col2}
-                    />
-                  </box>
-
-                  {/* Col 3 */}
-                  <box
-                    title={` #${String(col3 + 1).padStart(2, " ")} `}
-                    style={{
-                      border: true,
-                      borderColor: focusedIndex === col3 ? "#60A5FA" : "#4B5563",
-                      width: 24,
-                      height: 3,
-                    }}
-                  >
-                    <input
-                      placeholder="word..."
-                      value={words[col3]}
-                      onInput={(val) => handleWordChange(col3, val)}
-                      onSubmit={() => {
-                        if (col3 === 11) handleProceed()
-                        else setFocusedIndex((prev) => (prev + 1) % 12)
+                  {colIndices.map((idx) => (
+                    <box
+                      key={idx}
+                      title={` #${String(idx + 1).padStart(2, " ")} `}
+                      style={{
+                        border: true,
+                        borderColor: focusedIndex === idx ? "#60A5FA" : "#4B5563",
+                        width: 24,
+                        height: 3,
                       }}
-                      focused={focusedIndex === col3}
-                    />
-                  </box>
+                    >
+                      <input
+                        value={words[idx] || ""}
+                        onInput={(val) => handleWordChange(idx, val)}
+                        focused={focusedIndex === idx}
+                        placeholder="..."
+                      />
+                    </box>
+                  ))}
                 </box>
               )
             })}
@@ -159,15 +124,15 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
           ) : null}
 
           <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <text fg="#9CA3AF">[Tab] Next word | [Enter] Continue</text>
-            <text fg="#60A5FA">[Esc] Back to Welcome</text>
+            <text fg="#9CA3AF">[Tab] Next | [Enter] Continue</text>
+            <text fg="#60A5FA">[Esc] Back</text>
           </box>
         </box>
       </box>
 
       <Footer>
         <text fg="#9CA3AF">
-          [<span fg="#60A5FA"><b>Tab</b></span>] Next Word  |  [<span fg="#10B981"><b>Enter</b></span>] Validate & Continue  |  [<span fg="#EF4444"><b>Esc</b></span>] Back
+          [<span fg="#60A5FA"><b>Tab</b></span>] Next Field  |  [<span fg="#10B981"><b>Enter</b></span>] Submit  |  [<span fg="#34D399"><b>T</b></span>] Toggle 12/24  |  [<span fg="#EF4444"><b>Esc</b></span>] Back
         </text>
       </Footer>
     </box>

@@ -11,25 +11,48 @@ interface MnemonicScreenProps {
 
 export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScreenProps) {
   const {
-    backedUp,
-    toggleBackedUp,
-    errorMessage,
+    stage,
     words,
-    handleContinue,
+    challenge,
+    focusedChallengeIndex,
+    errorMessage,
+    setFocusedChallengeIndex,
+    handleChallengeWordChange,
+    proceedToVerification,
+    handleVerifyAndSubmit,
+    backToDisplay,
   } = useMnemonicBackup({ mnemonic, onComplete })
 
   useKeyboard((key) => {
-    if (key.name === "space") {
-      toggleBackedUp()
-    } else if (key.name === "return") {
-      handleContinue()
-    } else if (key.name === "escape" && onCancel) {
-      onCancel()
+    if (stage === "display") {
+      if (key.name === "return" || key.name === "space") {
+        proceedToVerification()
+      } else if (key.name === "escape" && onCancel) {
+        onCancel()
+      }
+    } else {
+      // Stage: verify
+      if (key.name === "tab") {
+        setFocusedChallengeIndex((focusedChallengeIndex + 1) % challenge.length)
+      } else if (key.name === "return") {
+        if (focusedChallengeIndex === challenge.length - 1) {
+          handleVerifyAndSubmit()
+        } else {
+          setFocusedChallengeIndex(focusedChallengeIndex + 1)
+        }
+      } else if (key.name === "escape") {
+        backToDisplay()
+      } else if (key.name === "up") {
+        setFocusedChallengeIndex(Math.max(0, focusedChallengeIndex - 1))
+      } else if (key.name === "down") {
+        setFocusedChallengeIndex(Math.min(challenge.length - 1, focusedChallengeIndex + 1))
+      }
     }
   })
 
-  // Group into columns of 4 rows x 3 columns
-  const rows = [0, 1, 2, 3]
+  const cols = 3
+  const numRows = words.length / cols
+  const rows = Array.from({ length: numRows }, (_, i) => i)
 
   return (
     <box
@@ -40,7 +63,7 @@ export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScree
         justifyContent: "space-between",
       }}
     >
-      <Header subtitle="Backup Recovery Phrase" />
+      <Header subtitle={stage === "display" ? "Backup Recovery Phrase" : "Verify Recovery Phrase"} />
 
       <box
         style={{
@@ -54,97 +77,142 @@ export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScree
           style={{
             flexDirection: "column",
             border: true,
-            borderColor: "#F59E0B",
+            borderColor: stage === "display" ? "#F59E0B" : "#3B82F6",
             padding: 1,
             width: 76,
           }}
         >
-          <box style={{ marginBottom: 1 }}>
-            <text fg="#FBBF24">
-              <b>Backup Your Recovery Phrase (BIP-39)</b>
-            </text>
-          </box>
+          {stage === "display" ? (
+            <>
+              <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
+                <text fg="#FBBF24">
+                  <b>Backup Your Recovery Phrase (BIP-39)</b>
+                </text>
+                <text fg="#60A5FA">[{words.length} Words]</text>
+              </box>
 
-          {/* Warning Box */}
-          <box
-            style={{
-              border: true,
-              borderColor: "#EF4444",
-              backgroundColor: "#1F1D1D",
-              padding: 1,
-              marginBottom: 1,
-              flexDirection: "column",
-            }}
-          >
-            <text fg="#F87171">
-              <b>IMPORTANT:</b> Write down these 12 words in order and keep them safe.
-            </text>
-            <text fg="#D1D5DB">
-              Anyone who has this recovery phrase can steal your funds. Never share it!
-            </text>
-          </box>
+              {/* Warning Box */}
+              <box
+                style={{
+                  border: true,
+                  borderColor: "#EF4444",
+                  backgroundColor: "#1F1D1D",
+                  padding: 1,
+                  marginBottom: 1,
+                  flexDirection: "column",
+                }}
+              >
+                <text fg="#F87171">
+                  <b>IMPORTANT:</b> Write down these {words.length} words in order and keep them safe.
+                </text>
+                <text fg="#D1D5DB">
+                  You will be asked to confirm 3 random words in the next step to verify backup.
+                </text>
+              </box>
 
-          {/* 12-Word Grid */}
-          <box
-            title=" Recovery Phrase "
-            style={{
-              border: true,
-              borderColor: "#FBBF24",
-              padding: 1,
-              flexDirection: "column",
-              marginBottom: 1,
-            }}
-          >
-            {rows.map((rowIndex) => {
-              const w1 = rowIndex
-              const w2 = rowIndex + 4
-              const w3 = rowIndex + 8
-              return (
-                <box key={rowIndex} style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <box style={{ width: 23, flexDirection: "row" }}>
-                    <text fg="#60A5FA">{String(w1 + 1).padStart(2, " ")}. </text>
-                    <text fg="#FFFFFF"><b>{words[w1]}</b></text>
+              {/* Word Grid */}
+              <box
+                title=" Recovery Phrase "
+                style={{
+                  border: true,
+                  borderColor: "#FBBF24",
+                  padding: 1,
+                  flexDirection: "column",
+                  marginBottom: 1,
+                }}
+              >
+                {rows.map((rowIndex) => {
+                  const colIndices = Array.from({ length: cols }, (_, c) => rowIndex + c * numRows)
+                  return (
+                    <box key={rowIndex} style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                      {colIndices.map((wIdx) => (
+                        <box key={wIdx} style={{ width: 23, flexDirection: "row" }}>
+                          <text fg="#60A5FA">{String(wIdx + 1).padStart(2, " ")}. </text>
+                          <text fg="#FFFFFF"><b>{words[wIdx]}</b></text>
+                        </box>
+                      ))}
+                    </box>
+                  )
+                })}
+              </box>
+
+              <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
+                <text fg="#9CA3AF">[Enter] Proceed to Backup Verification</text>
+                {onCancel ? <text fg="#60A5FA">[Esc] Back</text> : null}
+              </box>
+            </>
+          ) : (
+            <>
+              <box style={{ marginBottom: 1 }}>
+                <text fg="#60A5FA">
+                  <b>Verify Recovery Phrase Backup (FR-ACC-02)</b>
+                </text>
+              </box>
+
+              <box
+                style={{
+                  border: true,
+                  borderColor: "#3B82F6",
+                  padding: 1,
+                  marginBottom: 1,
+                  flexDirection: "column",
+                }}
+              >
+                <text fg="#D1D5DB">
+                  Please enter the words corresponding to the requested positions below to confirm your backup:
+                </text>
+              </box>
+
+              {/* 3 Challenge Word Inputs */}
+              <box style={{ flexDirection: "column", marginBottom: 1 }}>
+                {challenge.map((item, idx) => (
+                  <box
+                    key={item.position}
+                    title={` Word #${item.position} `}
+                    style={{
+                      border: true,
+                      borderColor: focusedChallengeIndex === idx ? "#60A5FA" : "#4B5563",
+                      height: 3,
+                      marginBottom: 1,
+                    }}
+                  >
+                    <input
+                      placeholder={`Enter word #${item.position}...`}
+                      value={item.enteredWord}
+                      onInput={(val) => handleChallengeWordChange(idx, val)}
+                      focused={focusedChallengeIndex === idx}
+                    />
                   </box>
-                  <box style={{ width: 23, flexDirection: "row" }}>
-                    <text fg="#60A5FA">{String(w2 + 1).padStart(2, " ")}. </text>
-                    <text fg="#FFFFFF"><b>{words[w2]}</b></text>
-                  </box>
-                  <box style={{ width: 23, flexDirection: "row" }}>
-                    <text fg="#60A5FA">{String(w3 + 1).padStart(2, " ")}. </text>
-                    <text fg="#FFFFFF"><b>{words[w3]}</b></text>
-                  </box>
+                ))}
+              </box>
+
+              {errorMessage ? (
+                <box style={{ marginBottom: 1 }}>
+                  <text fg="#EF4444">⚠ {errorMessage}</text>
                 </box>
-              )
-            })}
-          </box>
+              ) : null}
 
-          {/* Checkbox confirmation */}
-          <box style={{ flexDirection: "row", marginBottom: 1, gap: 1 }}>
-            <text fg={backedUp ? "#10B981" : "#F59E0B"}>
-              {backedUp ? "[✔]" : "[ ]"}
-            </text>
-            <text fg={backedUp ? "#10B981" : "#E5E7EB"}>
-              <b> I have safely backed up my 12-word recovery phrase</b>
-            </text>
-          </box>
-
-          {errorMessage ? (
-            <box style={{ marginBottom: 1 }}>
-              <text fg="#EF4444">⚠ {errorMessage}</text>
-            </box>
-          ) : null}
-
-          <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
-            <text fg="#9CA3AF">[Space] Toggle confirmation | [Enter] Create Wallet</text>
-            {onCancel ? <text fg="#60A5FA">[Esc] Back</text> : null}
-          </box>
+              <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
+                <text fg="#9CA3AF">[Tab] Next Word | [Enter] Verify & Finish</text>
+                <text fg="#60A5FA">[Esc] Back to Words</text>
+              </box>
+            </>
+          )}
         </box>
       </box>
 
       <Footer>
         <text fg="#9CA3AF">
-          [<span fg="#60A5FA"><b>Space</b></span>] Toggle Checkbox  |  [<span fg="#10B981"><b>Enter</b></span>] Complete Setup
-          {onCancel ? <>  |  [<span fg="#EF4444"><b>Esc</b></span>] Back</> : null}
+          {stage === "display" ? (
+            <>
+              [<span fg="#10B981"><b>Enter</b></span>] Continue to Verification
+              {onCancel ? <>  |  [<span fg="#EF4444"><b>Esc</b></span>] Back</> : null}
+            </>
+          ) : (
+            <>
+              [<span fg="#60A5FA"><b>Tab</b></span>] Next Word  |  [<span fg="#10B981"><b>Enter</b></span>] Verify & Save  |  [<span fg="#EF4444"><b>Esc</b></span>] Review Words
+            </>
+          )}
         </text>
       </Footer>
     </box>

@@ -4,6 +4,7 @@ import type {
   IStorageService,
   IRpcService,
   IClipboardService,
+  IKeystoreService,
 } from "./interfaces.js"
 
 export interface ServiceMap {
@@ -12,7 +13,7 @@ export interface ServiceMap {
   storageService: IStorageService
   rpcService: IRpcService
   clipboardService: IClipboardService
+  keystoreService: IKeystoreService
 }
 
 export type ServiceToken = keyof ServiceMap
-

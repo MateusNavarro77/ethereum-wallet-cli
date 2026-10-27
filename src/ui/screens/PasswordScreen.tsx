@@ -1,8 +1,7 @@
-import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
-import { useService } from "../context.js"
+import { usePasswordForm } from "../hooks/index.js"
 
 interface PasswordScreenProps {
   onComplete: (password: string) => void
@@ -15,30 +14,22 @@ export function PasswordScreen({
   onCancel,
   title = "Set Master Password",
 }: PasswordScreenProps) {
-  const cryptoService = useService("cryptoService")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [focusedField, setFocusedField] = useState<"password" | "confirm">("password")
-  const [errorMessage, setErrorMessage] = useState("")
-
-  const assessment = cryptoService.assessPasswordStrength(password)
-
-  const handleProceed = () => {
-    if (password.length < 8) {
-      setErrorMessage("Password must be at least 8 characters long")
-      return
-    }
-    if (password !== confirmPassword) {
-      setErrorMessage("Passwords do not match")
-      return
-    }
-    setErrorMessage("")
-    onComplete(password)
-  }
+  const {
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    focusedField,
+    setFocusedField,
+    toggleFocus,
+    errorMessage,
+    strength,
+    handleProceed,
+  } = usePasswordForm({ onComplete })
 
   useKeyboard((key) => {
     if (key.name === "tab" || key.name === "down" || key.name === "up") {
-      setFocusedField((prev) => (prev === "password" ? "confirm" : "password"))
+      toggleFocus()
     } else if (key.name === "return") {
       if (focusedField === "password" && password.length >= 8) {
         setFocusedField("confirm")
@@ -49,19 +40,6 @@ export function PasswordScreen({
       onCancel()
     }
   })
-
-  const getStrengthBar = (score: number) => {
-    const bars = ["░░░░", "█░░░", "██░░", "███░", "████"]
-    const colors = ["#888888", "#EF4444", "#F59E0B", "#10B981", "#059669"]
-    const labels = ["Too Weak", "Weak", "Fair", "Good", "Strong"]
-    return {
-      bar: bars[score] || "░░░░",
-      color: colors[score] || "#888888",
-      label: labels[score] || "",
-    }
-  }
-
-  const strength = getStrengthBar(assessment.score)
 
   return (
     <box
@@ -115,10 +93,8 @@ export function PasswordScreen({
           >
             <input
               placeholder="Enter master password (min 8 characters)..."
-              onInput={(val) => {
-                setPassword(val)
-                setErrorMessage("")
-              }}
+              value={password}
+              onInput={setPassword}
               onSubmit={handleProceed}
               focused={focusedField === "password"}
             />
@@ -136,10 +112,8 @@ export function PasswordScreen({
           >
             <input
               placeholder="Re-enter password to confirm..."
-              onInput={(val) => {
-                setConfirmPassword(val)
-                setErrorMessage("")
-              }}
+              value={confirmPassword}
+              onInput={setConfirmPassword}
               onSubmit={handleProceed}
               focused={focusedField === "confirm"}
             />

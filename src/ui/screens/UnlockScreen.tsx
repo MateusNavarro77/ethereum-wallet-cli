@@ -3,7 +3,7 @@ import { useKeyboard, useRenderer } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
 import { ResetModal } from "../components/ResetModal.js"
-import { useService } from "../context.js"
+import { useUnlock } from "../hooks/index.js"
 import type { WalletData } from "../../core/types.js"
 
 interface UnlockScreenProps {
@@ -12,33 +12,16 @@ interface UnlockScreenProps {
 }
 
 export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
-  const cryptoService = useService("cryptoService")
-  const storageService = useService("storageService")
   const renderer = useRenderer()
-
-  const [password, setPassword] = useState("")
-  const [errorMessage, setErrorMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const [showResetModal, setShowResetModal] = useState(false)
 
-  const handleUnlock = async () => {
-    if (!password) {
-      setErrorMessage("Please enter your wallet password")
-      return
-    }
-
-    try {
-      setIsLoading(true)
-      setErrorMessage("")
-      const vault = await storageService.loadVault()
-      const decrypted = await cryptoService.decrypt(vault, password)
-      const wallet = JSON.parse(decrypted) as WalletData
-      onUnlocked(wallet)
-    } catch {
-      setErrorMessage("Incorrect password. Please try again.")
-      setIsLoading(false)
-    }
-  }
+  const {
+    password,
+    setPassword,
+    errorMessage,
+    isLoading,
+    handleUnlock,
+  } = useUnlock({ onUnlocked })
 
   useKeyboard((key) => {
     if (showResetModal) return
@@ -104,10 +87,8 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
           >
             <input
               placeholder="Password..."
-              onInput={(val) => {
-                setPassword(val)
-                setErrorMessage("")
-              }}
+              value={password}
+              onInput={setPassword}
               onSubmit={handleUnlock}
               focused={!showResetModal}
             />

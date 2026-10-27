@@ -1,8 +1,7 @@
-import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
-import { useService } from "../context.js"
+import { useImportMnemonic } from "../hooks/index.js"
 
 interface ImportScreenProps {
   onComplete: (mnemonic: string) => void
@@ -10,54 +9,14 @@ interface ImportScreenProps {
 }
 
 export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
-  const walletService = useService("walletService")
-  const [words, setWords] = useState<string[]>(Array(12).fill(""))
-  const [focusedIndex, setFocusedIndex] = useState(0)
-  const [errorMessage, setErrorMessage] = useState("")
-
-  const handleWordChange = (index: number, val: string) => {
-    setErrorMessage("")
-    const trimmed = val.trim()
-
-    // If user pasted or typed multiple words separated by whitespace
-    if (trimmed.includes(" ")) {
-      const splitWords = trimmed.split(/\s+/).filter(Boolean)
-      setWords((prev) => {
-        const next = [...prev]
-        for (let i = 0; i < splitWords.length && index + i < 12; i++) {
-          next[index + i] = splitWords[i].toLowerCase()
-        }
-        return next
-      })
-      const nextIndex = Math.min(11, index + splitWords.length)
-      setFocusedIndex(nextIndex)
-      return
-    }
-
-    setWords((prev) => {
-      const next = [...prev]
-      next[index] = val.toLowerCase().trim()
-      return next
-    })
-  }
-
-  const handleProceed = () => {
-    const fullPhrase = words.map((w) => w.trim().toLowerCase()).join(" ")
-    const filledCount = words.filter((w) => w.trim().length > 0).length
-
-    if (filledCount < 12) {
-      setErrorMessage(`Please enter all 12 words (${filledCount}/12 filled)`)
-      return
-    }
-
-    const isValid = walletService.validateMnemonic(fullPhrase)
-    if (!isValid) {
-      setErrorMessage("Invalid BIP-39 mnemonic phrase. Check for typos or invalid words.")
-      return
-    }
-
-    onComplete(fullPhrase)
-  }
+  const {
+    words,
+    focusedIndex,
+    errorMessage,
+    setFocusedIndex,
+    handleWordChange,
+    handleProceed,
+  } = useImportMnemonic({ onComplete })
 
   useKeyboard((key) => {
     if (key.name === "escape") {
@@ -214,4 +173,3 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
     </box>
   )
 }
-

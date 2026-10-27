@@ -1,7 +1,7 @@
-import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { useMnemonicBackup } from "../hooks/index.js"
 
 interface MnemonicScreenProps {
   mnemonic: string
@@ -10,22 +10,17 @@ interface MnemonicScreenProps {
 }
 
 export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScreenProps) {
-  const [backedUp, setBackedUp] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-  const words = mnemonic.trim().split(" ")
-
-  const handleContinue = () => {
-    if (!backedUp) {
-      setErrorMessage("Please confirm that you have safely backed up your recovery phrase.")
-      return
-    }
-    onComplete()
-  }
+  const {
+    backedUp,
+    toggleBackedUp,
+    errorMessage,
+    words,
+    handleContinue,
+  } = useMnemonicBackup({ mnemonic, onComplete })
 
   useKeyboard((key) => {
     if (key.name === "space") {
-      setBackedUp((prev) => !prev)
-      setErrorMessage("")
+      toggleBackedUp()
     } else if (key.name === "return") {
       handleContinue()
     } else if (key.name === "escape" && onCancel) {

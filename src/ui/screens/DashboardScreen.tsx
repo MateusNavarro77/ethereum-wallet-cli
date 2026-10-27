@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { useKeyboard, useRenderer } from "@opentui/react"
 import { registerQRCode } from "@opentui/qrcode/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
 import { ResetModal } from "../components/ResetModal.js"
-import { useService } from "../context.js"
+import { useBalance, useClipboardNotification } from "../hooks/index.js"
 import type { Account } from "../../core/types.js"
 
 // Ensure QR code renderable is registered in OpenTUI
@@ -16,47 +16,23 @@ export interface DashboardScreenProps {
 }
 
 export function DashboardScreen({ account, onReset }: DashboardScreenProps) {
-  const rpcService = useService("rpcService")
-  const clipboardService = useService("clipboardService")
   const renderer = useRenderer()
-
-  const [balance, setBalance] = useState<string>("Loading...")
-  const [balanceError, setBalanceError] = useState<string | null>(null)
-  const [notification, setNotification] = useState<string | null>(null)
   const [showResetModal, setShowResetModal] = useState(false)
-  const network = rpcService.getNetwork()
 
-  const fetchBalance = useCallback(async () => {
-    try {
-      setBalance("Fetching...")
-      setBalanceError(null)
-      const wei = await rpcService.getBalance(account.address)
-      const formatted = rpcService.formatEther(wei)
-      setBalance(`${formatted} ${network.symbol}`)
-      setNotification("✔ Balance updated")
-      setTimeout(() => setNotification(null), 2500)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      setBalanceError(message)
-      setBalance("Unavailable (RPC error)")
-    }
-  }, [account.address, network.symbol, rpcService])
+  const { notification, copyText, setNotification } = useClipboardNotification(3000)
 
-  useEffect(() => {
-    fetchBalance()
-  }, [fetchBalance])
+  const handleBalanceUpdateSuccess = useCallback(() => {
+    setNotification("✔ Balance updated", 2500)
+  }, [setNotification])
 
-  const handleCopy = async () => {
-    const success = await clipboardService.copy(account.address)
-    if (success) {
-      setNotification("✔ Address copied to clipboard!")
-    } else {
-      setNotification("Failed to copy automatically (copy manually)")
-    }
-    setTimeout(() => {
-      setNotification(null)
-    }, 3000)
-  }
+  const { balance, balanceError, network, refreshBalance } = useBalance(
+    account.address,
+    handleBalanceUpdateSuccess,
+  )
+
+  const handleCopy = useCallback(async () => {
+    await copyText(account.address, "✔ Address copied to clipboard!")
+  }, [copyText, account.address])
 
   useKeyboard((key) => {
     if (showResetModal) return
@@ -64,7 +40,7 @@ export function DashboardScreen({ account, onReset }: DashboardScreenProps) {
     if (key.name === "c" || key.name === "C") {
       handleCopy()
     } else if (key.name === "r" || key.name === "R") {
-      fetchBalance()
+      refreshBalance()
     } else if (key.name === "x" || key.name === "X") {
       setShowResetModal(true)
     } else if (key.name === "q" || key.name === "Q" || key.name === "escape") {

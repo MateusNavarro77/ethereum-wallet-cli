@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { testRender } from "@opentui/react/test-utils"
+import { testRender } from "./test-utils.js"
 import { registerQRCode } from "@opentui/qrcode/react"
 import { ContainerProvider } from "../src/ui/context.js"
 import { createDefaultContainer } from "../src/container/index.js"

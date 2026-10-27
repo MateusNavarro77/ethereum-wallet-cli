@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { testRender } from "@opentui/react/test-utils"
+import { testRender, act } from "./test-utils.js"
 import { createDefaultContainer } from "../src/container/index.js"
 import { StorageService } from "../src/services/storage.service.js"
 import {
@@ -47,7 +47,9 @@ describe("UI Custom Hooks", () => {
       expect(currentHook.network.name).toBe("Sepolia Testnet")
       expect(currentHook.network.symbol).toBe("SEP")
 
-      await currentHook.refreshBalance()
+      await act(async () => {
+        await currentHook.refreshBalance()
+      })
       await setup.renderOnce()
 
       expect(currentHook.balance).toBe("1.0 SEP")
@@ -86,7 +88,9 @@ describe("UI Custom Hooks", () => {
         {},
       )
 
-      await currentHook.refreshBalance()
+      await act(async () => {
+        await currentHook.refreshBalance()
+      })
       await setup.renderOnce()
 
       expect(currentHook.balance).toBe("Unavailable (RPC error)")
@@ -113,7 +117,9 @@ describe("UI Custom Hooks", () => {
       )
 
       expect(currentHook.notification).toBeNull()
-      currentHook.setNotification("Custom Alert", 100)
+      act(() => {
+        currentHook.setNotification("Custom Alert", 100)
+      })
       await setup.renderOnce()
       expect(currentHook.notification).toBe("Custom Alert")
 
@@ -140,7 +146,10 @@ describe("UI Custom Hooks", () => {
         {},
       )
 
-      const success = await currentHook.copyText("0x123")
+      let success = false
+      await act(async () => {
+        success = await currentHook.copyText("0x123")
+      })
       expect(success).toBe(true)
       await setup.renderOnce()
       expect(currentHook.notification).toBe("✔ Address copied to clipboard!")
@@ -166,7 +175,9 @@ describe("UI Custom Hooks", () => {
         {},
       )
 
-      await currentHook.handleUnlock()
+      await act(async () => {
+        await currentHook.handleUnlock()
+      })
       await setup.renderOnce()
 
       expect(currentHook.errorMessage).toBe("Please enter your wallet password")
@@ -206,9 +217,13 @@ describe("UI Custom Hooks", () => {
         {},
       )
 
-      currentHook.setPassword("password123")
+      act(() => {
+        currentHook.setPassword("password123")
+      })
       await setup.renderOnce()
-      await currentHook.handleUnlock()
+      await act(async () => {
+        await currentHook.handleUnlock()
+      })
       await setup.renderOnce()
 
       expect(currentHook.errorMessage).toBe("")
@@ -238,28 +253,40 @@ describe("UI Custom Hooks", () => {
       )
 
       // Less than 8 chars
-      currentHook.setPassword("short")
-      currentHook.setConfirmPassword("short")
+      act(() => {
+        currentHook.setPassword("short")
+        currentHook.setConfirmPassword("short")
+      })
       await setup.renderOnce()
-      currentHook.handleProceed()
+      act(() => {
+        currentHook.handleProceed()
+      })
       await setup.renderOnce()
       expect(currentHook.errorMessage).toBe("Password must be at least 8 characters long")
       expect(submitted).toBe("")
 
       // Mismatched
-      currentHook.setPassword("strongpassword123")
-      currentHook.setConfirmPassword("different123")
+      act(() => {
+        currentHook.setPassword("strongpassword123")
+        currentHook.setConfirmPassword("different123")
+      })
       await setup.renderOnce()
-      currentHook.handleProceed()
+      act(() => {
+        currentHook.handleProceed()
+      })
       await setup.renderOnce()
       expect(currentHook.errorMessage).toBe("Passwords do not match")
       expect(submitted).toBe("")
 
       // Matching and valid
-      currentHook.setPassword("strongpassword123")
-      currentHook.setConfirmPassword("strongpassword123")
+      act(() => {
+        currentHook.setPassword("strongpassword123")
+        currentHook.setConfirmPassword("strongpassword123")
+      })
       await setup.renderOnce()
-      currentHook.handleProceed()
+      act(() => {
+        currentHook.handleProceed()
+      })
       await setup.renderOnce()
       expect(currentHook.errorMessage).toBe("")
       expect(submitted).toBe("strongpassword123")
@@ -284,7 +311,9 @@ describe("UI Custom Hooks", () => {
       )
 
       expect(currentHook.focusedField).toBe("password")
-      currentHook.toggleFocus()
+      act(() => {
+        currentHook.toggleFocus()
+      })
       await setup.renderOnce()
       expect(currentHook.focusedField).toBe("confirm")
 
@@ -308,10 +337,12 @@ describe("UI Custom Hooks", () => {
         {},
       )
 
-      currentHook.handleWordChange(
-        0,
-        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
-      )
+      act(() => {
+        currentHook.handleWordChange(
+          0,
+          "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        )
+      })
       await setup.renderOnce()
 
       expect(currentHook.words[0]).toBe("abandon")
@@ -337,16 +368,22 @@ describe("UI Custom Hooks", () => {
         {},
       )
 
-      currentHook.handleProceed()
+      act(() => {
+        currentHook.handleProceed()
+      })
       await setup.renderOnce()
       expect(currentHook.errorMessage).toContain("Please enter all 12 words")
 
-      currentHook.handleWordChange(
-        0,
-        "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
-      )
+      act(() => {
+        currentHook.handleWordChange(
+          0,
+          "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+        )
+      })
       await setup.renderOnce()
-      currentHook.handleProceed()
+      act(() => {
+        currentHook.handleProceed()
+      })
       await setup.renderOnce()
       expect(currentHook.errorMessage).toBe("")
       expect(completedPhrase).toContain("abandon")
@@ -376,16 +413,22 @@ describe("UI Custom Hooks", () => {
       expect(currentHook.words.length).toBe(12)
       expect(currentHook.backedUp).toBe(false)
 
-      currentHook.handleContinue()
+      act(() => {
+        currentHook.handleContinue()
+      })
       await setup.renderOnce()
       expect(currentHook.errorMessage).toContain("confirm that you have safely backed up")
       expect(continued).toBe(false)
 
-      currentHook.toggleBackedUp()
+      act(() => {
+        currentHook.toggleBackedUp()
+      })
       await setup.renderOnce()
       expect(currentHook.backedUp).toBe(true)
 
-      currentHook.handleContinue()
+      act(() => {
+        currentHook.handleContinue()
+      })
       await setup.renderOnce()
       expect(continued).toBe(true)
 

@@ -7,6 +7,7 @@ import { WelcomeScreen } from "../src/ui/screens/WelcomeScreen.js"
 import { ImportScreen } from "../src/ui/screens/ImportScreen.js"
 import { PasswordScreen } from "../src/ui/screens/PasswordScreen.js"
 import { MnemonicScreen } from "../src/ui/screens/MnemonicScreen.js"
+import { DashboardScreen } from "../src/ui/screens/DashboardScreen.js"
 import { ReceiveScreen } from "../src/ui/screens/ReceiveScreen.js"
 import { UnlockScreen } from "../src/ui/screens/UnlockScreen.js"
 import { ResetModal } from "../src/ui/components/ResetModal.js"
@@ -62,7 +63,28 @@ describe("UI Screens Rendering (Iteration 2)", () => {
     setup.renderer.destroy()
   })
 
-  it("renders ReceiveScreen with QR code and onReset without crashing", async () => {
+  it("renders DashboardScreen with rendered QR code blocks and onReset", async () => {
+    const dummyAccount: Account = {
+      address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+      index: 0,
+      label: "Account 1",
+    }
+    const setup = await testRender(
+      <ContainerProvider container={container}>
+        <DashboardScreen account={dummyAccount} onReset={() => {}} />
+      </ContainerProvider>,
+      { width: 100, height: 30 },
+    )
+    expect(setup.renderer).toBeDefined()
+    await setup.renderOnce()
+    const frame = setup.captureCharFrame()
+    expect(frame).toContain("Scan to Receive")
+    expect(frame).toContain("█")
+    expect(frame).toContain(dummyAccount.address)
+    setup.renderer.destroy()
+  })
+
+  it("renders ReceiveScreen backwards compatibility alias", async () => {
     const dummyAccount: Account = {
       address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
       index: 0,
@@ -72,9 +94,13 @@ describe("UI Screens Rendering (Iteration 2)", () => {
       <ContainerProvider container={container}>
         <ReceiveScreen account={dummyAccount} onReset={() => {}} />
       </ContainerProvider>,
-      {},
+      { width: 100, height: 30 },
     )
     expect(setup.renderer).toBeDefined()
+    await setup.renderOnce()
+    const frame = setup.captureCharFrame()
+    expect(frame).toContain("Scan to Receive")
+    expect(frame).toContain("█")
     setup.renderer.destroy()
   })
 

@@ -4,7 +4,7 @@ import { WelcomeScreen } from "./screens/WelcomeScreen.js"
 import { PasswordScreen } from "./screens/PasswordScreen.js"
 import { MnemonicScreen } from "./screens/MnemonicScreen.js"
 import { ImportScreen } from "./screens/ImportScreen.js"
-import { ReceiveScreen } from "./screens/ReceiveScreen.js"
+import { DashboardScreen } from "./screens/DashboardScreen.js"
 import { UnlockScreen } from "./screens/UnlockScreen.js"
 import type { Account, WalletData } from "../core/types.js"
 
@@ -16,6 +16,7 @@ type AppStep =
   | "import-words"
   | "import-password"
   | "unlock"
+  | "dashboard"
   | "receive"
 
 export function App() {
@@ -70,11 +71,11 @@ export function App() {
       )
       await storageService.saveVault(encryptedVault)
 
-      // Ensure loading state is cleared and transition immediately to receive
+      // Ensure loading state is cleared and transition immediately to dashboard
       setLoadingOverlay(null)
       setErrorMessage(null)
       setActiveAccount(wallet.accounts[0])
-      setStep("receive")
+      setStep("dashboard")
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setLoadingOverlay(null)
@@ -106,7 +107,7 @@ export function App() {
       setLoadingOverlay(null)
       setErrorMessage(null)
       setActiveAccount(wallet.accounts[0])
-      setStep("receive")
+      setStep("dashboard")
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setLoadingOverlay(null)
@@ -118,7 +119,7 @@ export function App() {
   const handleUnlocked = (wallet: WalletData) => {
     setErrorMessage(null)
     setActiveAccount(wallet.accounts[0])
-    setStep("receive")
+    setStep("dashboard")
   }
 
   const handleResetVault = async () => {
@@ -251,9 +252,9 @@ export function App() {
     )
   }
 
-  if (step === "receive" && activeAccount) {
+  if ((step === "dashboard" || step === "receive") && activeAccount) {
     return (
-      <ReceiveScreen
+      <DashboardScreen
         account={activeAccount}
         onReset={handleResetVault}
       />

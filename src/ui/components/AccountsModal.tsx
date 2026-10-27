@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useKeyboard } from "@opentui/react"
 import fs from "node:fs"
 import os from "node:os"
@@ -57,8 +57,17 @@ export function AccountsModal({
   onExportMnemonic,
   onClose,
 }: AccountsModalProps) {
+  const PAGE_SIZE = 8
   const [mode, setMode] = useState<ModalMode>("list")
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const accounts = wallet.accounts
+
+  const initialActiveIndex = accounts.findIndex(
+    (acc) => acc.address.toLowerCase() === activeAccount.address.toLowerCase(),
+  )
+  const [selectedIndex, setSelectedIndex] = useState(
+    initialActiveIndex >= 0 ? initialActiveIndex : 0,
+  )
+  const [scrollOffset, setScrollOffset] = useState(0)
   const [errorMessage, setErrorMessage] = useState("")
   const [statusMessage, setStatusMessage] = useState("")
 
@@ -77,8 +86,36 @@ export function AccountsModal({
     address?: `0x${string}`
   } | null>(null)
 
-  const accounts = wallet.accounts
-  const currentAccount = accounts[selectedIndex] || accounts[0]
+  const safeSelectedIndex = Math.min(
+    Math.max(0, selectedIndex),
+    Math.max(0, accounts.length - 1),
+  )
+  const currentAccount = accounts[safeSelectedIndex] || accounts[0]
+
+  const effectiveOffset = Math.max(
+    0,
+    Math.min(
+      safeSelectedIndex < scrollOffset
+        ? safeSelectedIndex
+        : safeSelectedIndex >= scrollOffset + PAGE_SIZE
+          ? safeSelectedIndex - PAGE_SIZE + 1
+          : scrollOffset,
+      Math.max(0, accounts.length - PAGE_SIZE),
+    ),
+  )
+
+  useEffect(() => {
+    if (effectiveOffset !== scrollOffset) {
+      setScrollOffset(effectiveOffset)
+    }
+  }, [effectiveOffset, scrollOffset])
+
+  const visibleAccounts = accounts.slice(
+    effectiveOffset,
+    effectiveOffset + PAGE_SIZE,
+  )
+  const hasMoreAbove = effectiveOffset > 0
+  const hasMoreBelow = effectiveOffset + PAGE_SIZE < accounts.length
 
   const resolveBadge = (acc: Account) => {
     if (acc.type === "hd") {
@@ -217,6 +254,14 @@ export function AccountsModal({
         setSelectedIndex((prev) => Math.max(0, prev - 1))
       } else if (key.name === "down") {
         setSelectedIndex((prev) => Math.min(accounts.length - 1, prev + 1))
+      } else if (key.name === "pageup") {
+        setSelectedIndex((prev) => Math.max(0, prev - PAGE_SIZE))
+      } else if (key.name === "pagedown") {
+        setSelectedIndex((prev) => Math.min(accounts.length - 1, prev + PAGE_SIZE))
+      } else if (key.name === "home") {
+        setSelectedIndex(0)
+      } else if (key.name === "end") {
+        setSelectedIndex(Math.max(0, accounts.length - 1))
       } else if (key.name === "return") {
         if (currentAccount && !currentAccount.hidden) {
           onSelectAccount(currentAccount.address)
@@ -364,7 +409,11 @@ export function AccountsModal({
             <b>Account Manager & Portfolio</b>
           </text>
           <text fg="#9CA3AF">
-            {accounts.length} Account{accounts.length > 1 ? "s" : ""} | [Esc] Close
+            {accounts.length} Account{accounts.length > 1 ? "s" : ""}
+            {accounts.length > PAGE_SIZE
+              ? ` (${effectiveOffset + 1}-${Math.min(accounts.length, effectiveOffset + PAGE_SIZE)} of ${accounts.length})`
+              : ""}
+            {" | [Esc] Close"}
           </text>
         </box>
 
@@ -372,17 +421,24 @@ export function AccountsModal({
         {mode === "list" && (
           <>
             <box
+              title={
+                accounts.length > PAGE_SIZE
+                  ? ` Accounts [${safeSelectedIndex + 1}/${accounts.length}] ${hasMoreAbove ? "▲" : " "} ${hasMoreBelow ? "▼" : " "} [↑/↓ Navigate] `
+                  : " Accounts "
+              }
               style={{
                 border: true,
                 borderColor: "#4B5563",
-                padding: 1,
+                paddingX: 1,
+                paddingY: 0,
                 flexDirection: "column",
                 marginBottom: 1,
-                maxHeight: 12,
+                height: Math.max(3, Math.min(accounts.length, PAGE_SIZE) + 2),
               }}
             >
-              {accounts.map((acc, i) => {
-                const isSelected = i === selectedIndex
+              {visibleAccounts.map((acc, i) => {
+                const originalIndex = effectiveOffset + i
+                const isSelected = originalIndex === safeSelectedIndex
                 const isActive = acc.address.toLowerCase() === activeAccount.address.toLowerCase()
                 const badge = resolveBadge(acc)
 
@@ -392,7 +448,6 @@ export function AccountsModal({
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
-                      marginBottom: 1,
                     }}
                   >
                     <box style={{ flexDirection: "row" }}>

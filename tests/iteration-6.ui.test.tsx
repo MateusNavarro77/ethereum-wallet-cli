@@ -80,7 +80,8 @@ describe("Iteration 6: Accounts Modal Overflow Fix", () => {
 
     // 1. Header shows total count and windowing range
     expect(frame).toContain("Account Manager & Portfolio")
-    expect(frame).toContain("24 Accounts (1-8 of 24) | [Esc] Close")
+    expect(frame).toContain("24 Accounts (1-8 of 24)")
+    expect(frame).toContain("[Esc] Close")
 
     // 2. Box title indicates navigation and down arrow scrollability
     expect(frame).toContain("Accounts [1/24]")

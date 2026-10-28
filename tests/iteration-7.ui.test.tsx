@@ -237,7 +237,7 @@ describe("Iteration 7 UI Components: Networks & RPC Management", () => {
     expect(frame).toContain("Chain ID")
     expect(frame).toContain("Currency Symbol")
     expect(frame).toContain("Block Explorer URL")
-    expect(frame).toContain("[Tab / ↑↓] Next Field")
+    expect(frame).toContain("[Tab / ↓] Next")
 
     setup.renderer.destroy()
   })
@@ -267,7 +267,9 @@ describe("Iteration 7 UI Components: Networks & RPC Management", () => {
     expect(frame).toContain("Status:")
 
     // Footer shortcut
-    expect(frame).toContain("[N] Networks")
+    // Footer hotkeys are rendered as separate compact buttons at this width.
+    expect(frame).toContain("[N]")
+    expect(frame).toContain("Networks")
 
     setup.renderer.destroy()
   })

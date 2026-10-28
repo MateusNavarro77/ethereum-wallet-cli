@@ -3,6 +3,7 @@ import type {
   IWalletService,
   IStorageService,
   IRpcService,
+  INetworkService,
   IClipboardService,
   IKeystoreService,
 } from "./interfaces.js"
@@ -12,6 +13,7 @@ export interface ServiceMap {
   walletService: IWalletService
   storageService: IStorageService
   rpcService: IRpcService
+  networkService: INetworkService
   clipboardService: IClipboardService
   keystoreService: IKeystoreService
 }

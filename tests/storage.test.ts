@@ -3,16 +3,20 @@ import { statSync, unlinkSync, existsSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { StorageService } from "../src/services/storage.service.js"
-import type { EncryptedVault } from "../src/core/types.js"
+import type { AppConfig, EncryptedVault } from "../src/core/types.js"
 
 describe("StorageService", () => {
   const tempDir = join(tmpdir(), `termiwallet-test-${Date.now()}`)
   const tempVaultPath = join(tempDir, "vault.json")
-  const storage = new StorageService(tempVaultPath)
+  const tempConfigPath = join(tempDir, "config.json")
+  const storage = new StorageService(tempVaultPath, tempConfigPath)
 
   afterEach(() => {
     if (existsSync(tempVaultPath)) {
       unlinkSync(tempVaultPath)
+    }
+    if (existsSync(tempConfigPath)) {
+      unlinkSync(tempConfigPath)
     }
     if (existsSync(tempDir)) {
       rmSync(tempDir, { recursive: true, force: true })
@@ -60,8 +64,39 @@ describe("StorageService", () => {
     expect(existsSync(tempVaultPath)).toBe(false)
   })
 
-  it("throws when loading non-existent vault", () => {
+  it("throws when loading non-existent vault", async () => {
     expect(storage.loadVault()).rejects.toThrow("Vault file does not exist")
   })
-})
 
+  it("persists and loads config.json correctly (FR-SET-01)", async () => {
+    expect(await storage.configExists()).toBe(false)
+
+    const dummyConfig: AppConfig = {
+      activeChainId: 1,
+      customNetworks: [
+        {
+          chainId: 1337,
+          name: "Testnet",
+          rpcUrl: "http://127.0.0.1:8545",
+          symbol: "TEST",
+        },
+      ],
+    }
+
+    await storage.saveConfig(dummyConfig)
+    expect(await storage.configExists()).toBe(true)
+
+    const stats = statSync(tempConfigPath)
+    expect(stats.mode & 0o777).toBe(0o600)
+
+    const loaded = await storage.loadConfig()
+    expect(loaded.activeChainId).toBe(1)
+    expect(loaded.customNetworks?.length).toBe(1)
+    expect(loaded.customNetworks?.[0].chainId).toBe(1337)
+  })
+
+  it("returns empty object when loading non-existent config", async () => {
+    const loaded = await storage.loadConfig()
+    expect(loaded).toEqual({})
+  })
+})

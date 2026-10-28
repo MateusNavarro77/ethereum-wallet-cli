@@ -2,17 +2,20 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync, unlinkSy
 import { homedir } from "node:os"
 import { join, dirname } from "node:path"
 import type { IStorageService } from "../core/interfaces.js"
-import type { EncryptedVault } from "../core/types.js"
+import type { AppConfig, EncryptedVault } from "../core/types.js"
 
 export class StorageService implements IStorageService {
   private readonly vaultPath: string
+  private readonly configPath: string
 
-  constructor(customPath?: string) {
+  constructor(customPath?: string, customConfigPath?: string) {
     if (customPath) {
       this.vaultPath = customPath
+      this.configPath = customConfigPath || join(dirname(customPath), "config.json")
     } else {
       const baseDir = process.env.TERMIWALLET_HOME || join(homedir(), ".termiwallet")
       this.vaultPath = join(baseDir, "vault.json")
+      this.configPath = customConfigPath || join(baseDir, "config.json")
     }
   }
 
@@ -20,8 +23,16 @@ export class StorageService implements IStorageService {
     return this.vaultPath
   }
 
+  getConfigPath(): string {
+    return this.configPath
+  }
+
   async vaultExists(): Promise<boolean> {
     return existsSync(this.vaultPath)
+  }
+
+  async configExists(): Promise<boolean> {
+    return existsSync(this.configPath)
   }
 
   async saveVault(vault: EncryptedVault): Promise<void> {
@@ -59,5 +70,33 @@ export class StorageService implements IStorageService {
       unlinkSync(this.vaultPath)
     }
   }
-}
 
+  async saveConfig(config: AppConfig): Promise<void> {
+    const dir = dirname(this.configPath)
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true, mode: 0o700 })
+    }
+
+    const content = JSON.stringify(config, null, 2)
+    writeFileSync(this.configPath, content, { encoding: "utf8", mode: 0o600 })
+
+    try {
+      chmodSync(this.configPath, 0o600)
+    } catch {
+      // Ignored on non-POSIX platforms
+    }
+  }
+
+  async loadConfig(): Promise<AppConfig> {
+    if (!existsSync(this.configPath)) {
+      return {}
+    }
+
+    const raw = readFileSync(this.configPath, "utf8")
+    try {
+      return JSON.parse(raw) as AppConfig
+    } catch {
+      throw new Error("Config file is corrupted or not valid JSON")
+    }
+  }
+}

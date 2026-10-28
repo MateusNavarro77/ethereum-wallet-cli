@@ -5,7 +5,8 @@ import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
 import { ResetModal } from "../components/ResetModal.js"
 import { AccountsModal } from "../components/AccountsModal.js"
-import { useBalance, useClipboardNotification } from "../hooks/index.js"
+import { NetworksModal } from "../components/NetworksModal.js"
+import { useBalance, useNetwork, useClipboardNotification } from "../hooks/index.js"
 import type {
   Account,
   HdAccount,
@@ -55,12 +56,24 @@ export function DashboardScreen({
   const renderer = useRenderer()
   const [showResetModal, setShowResetModal] = useState(false)
   const [showAccountsModal, setShowAccountsModal] = useState(false)
+  const [showNetworksModal, setShowNetworksModal] = useState(false)
 
   const { notification, copyText, setNotification } = useClipboardNotification(3000)
 
   const handleBalanceUpdateSuccess = useCallback(() => {
     setNotification("✔ Balance updated", 2500)
   }, [setNotification])
+
+  const {
+    activeNetwork,
+    allNetworks,
+    status,
+    switchNetwork,
+    addNetwork,
+    editNetwork,
+    removeNetwork,
+    refreshStatus,
+  } = useNetwork()
 
   const { balance, balanceError, network, refreshBalance } = useBalance(
     account.address,
@@ -90,16 +103,19 @@ export function DashboardScreen({
   )
 
   useKeyboard((key) => {
-    if (showResetModal || showAccountsModal) return
+    if (showResetModal || showAccountsModal || showNetworksModal) return
 
     if (key.name === "c" || key.name === "C") {
       handleCopy()
     } else if (key.name === "r" || key.name === "R") {
       refreshBalance()
+      refreshStatus()
     } else if (key.name === "a" || key.name === "A") {
       if (wallet) {
         setShowAccountsModal(true)
       }
+    } else if (key.name === "n" || key.name === "N") {
+      setShowNetworksModal(true)
     } else if (key.name === "tab" || key.name === "right") {
       cycleAccount(1)
     } else if (key.name === "left") {
@@ -123,7 +139,15 @@ export function DashboardScreen({
     return ""
   }
 
+  const resolveNetworkBadge = (net: typeof activeNetwork) => {
+    if (net.isLocal) return { text: "[LOCAL]", fg: "#22D3EE" }
+    if (net.isTestnet || net.chainId !== 1) return { text: "[TESTNET]", fg: "#FBBF24" }
+    return { text: "[MAINNET]", fg: "#34D399" }
+  }
+
   const badge = resolveBadge(account)
+  const netBadge = resolveNetworkBadge(activeNetwork)
+  const networkShortName = activeNetwork.name.includes("Sepolia") ? "Sepolia" : activeNetwork.name
 
   return (
     <box
@@ -134,7 +158,7 @@ export function DashboardScreen({
         justifyContent: "space-between",
       }}
     >
-      <Header subtitle="Dashboard" />
+      <Header subtitle="Dashboard" network={activeNetwork} status={status} />
 
       {/* Main 2-Column Responsive Dashboard Body */}
       <box
@@ -166,7 +190,7 @@ export function DashboardScreen({
             }}
           >
             <box style={{ marginBottom: 1, flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#9CA3AF">Ethereum Address (Sepolia):</text>
+              <text fg="#9CA3AF">Ethereum Address ({networkShortName}):</text>
               {wallet && wallet.accounts.length > 1 ? (
                 <text fg="#60A5FA">[Tab] Quick Switch</text>
               ) : null}
@@ -220,15 +244,33 @@ export function DashboardScreen({
           >
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
               <text fg="#9CA3AF">Network:</text>
-              <text fg="#FFFFFF"><b>{network.name}</b></text>
+              <box style={{ flexDirection: "row", gap: 1 }}>
+                <text fg={netBadge.fg}><b>{netBadge.text}</b></text>
+                <text fg="#FFFFFF"><b>{activeNetwork.name}</b></text>
+              </box>
             </box>
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
               <text fg="#9CA3AF">Chain ID:</text>
-              <text fg="#FFFFFF"><b>{network.chainId}</b></text>
+              <text fg="#FFFFFF"><b>{activeNetwork.chainId}</b></text>
+            </box>
+            <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
+              <text fg="#9CA3AF">Status:</text>
+              <text fg={status.connected ? "#34D399" : "#EF4444"}>
+                <b>
+                  {status.connected
+                    ? `🟢 Connected ${status.blockNumber !== undefined ? `(#${status.blockNumber})` : ""}`
+                    : `🔴 Offline`}
+                </b>
+              </text>
             </box>
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <text fg="#9CA3AF">RPC Endpoint:</text>
-              <text fg="#9CA3AF">{network.rpcUrl}</text>
+              <text fg="#9CA3AF">
+                {activeNetwork.rpcUrl}
+                {activeNetwork.rpcUrls && activeNetwork.rpcUrls.length > 1
+                  ? ` (+${activeNetwork.rpcUrls.length - 1} fallbacks)`
+                  : ""}
+              </text>
             </box>
           </box>
         </box>
@@ -281,6 +323,23 @@ export function DashboardScreen({
         />
       )}
 
+      {/* Networks & RPC Modal (FR-NET-02 & FR-NET-03) */}
+      {showNetworksModal && (
+        <NetworksModal
+          networks={allNetworks}
+          activeNetwork={activeNetwork}
+          status={status}
+          onSelectNetwork={async (chainId) => {
+            await switchNetwork(chainId)
+            await refreshBalance()
+          }}
+          onAddNetwork={addNetwork}
+          onEditNetwork={editNetwork}
+          onRemoveNetwork={removeNetwork}
+          onClose={() => setShowNetworksModal(false)}
+        />
+      )}
+
       {/* Reset Confirmation Modal */}
       {showResetModal ? (
         <ResetModal
@@ -295,7 +354,7 @@ export function DashboardScreen({
       {/* Fullscreen Footer */}
       <Footer notification={notification}>
         <text fg="#9CA3AF">
-          [<span fg="#60A5FA"><b>C</b></span>] Copy  |  [<span fg="#FBBF24"><b>A</b></span>] Accounts  |  [<span fg="#60A5FA"><b>R</b></span>] Refresh  |  [<span fg="#EF4444"><b>X</b></span>] Reset Vault  |  [<span fg="#9CA3AF"><b>Q</b></span>] Quit
+          [<span fg="#60A5FA"><b>C</b></span>] Copy  |  [<span fg="#FBBF24"><b>A</b></span>] Accounts  |  [<span fg="#34D399"><b>N</b></span>] Networks  |  [<span fg="#60A5FA"><b>R</b></span>] Refresh  |  [<span fg="#EF4444"><b>X</b></span>] Reset Vault  |  [<span fg="#9CA3AF"><b>Q</b></span>] Quit
         </text>
       </Footer>
     </box>

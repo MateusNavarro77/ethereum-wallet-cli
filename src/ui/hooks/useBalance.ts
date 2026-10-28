@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useService } from "../context.js"
+import type { NetworkConfig } from "../../core/types.js"
 
 export interface UseBalanceResult {
   balance: string
   balanceError: string | null
-  network: { name: string; symbol: string; chainId: number; rpcUrl: string }
+  network: NetworkConfig
   refreshBalance: () => Promise<void>
 }
 
@@ -52,11 +53,11 @@ export function useBalance(
         setBalance("Unavailable (RPC error)")
       }
     }
-  }, [address, network.symbol, rpcService, onUpdateSuccess])
+  }, [address, network.symbol, network.chainId, rpcService, onUpdateSuccess])
 
   useEffect(() => {
     refreshBalance()
-  }, [refreshBalance])
+  }, [refreshBalance, network.chainId])
 
   return {
     balance,

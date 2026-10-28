@@ -6,4 +6,5 @@
 - [Iteration 4: TermiWallet ASCII Art Branding & FIGlet Integration (Completed)](./iteration-4.md)
 - [Iteration 5: Multi-Account Management, Keystore & Key Import/Export, and Backup Verification (Completed)](./iteration-5.md)
 - [Iteration 6: Accounts Modal Viewport Windowing & Overflow Fix (Completed)](./iteration-6.md)
+- [Iteration 7: Networks and RPC Management (Completed)](./iteration-7.md)
 

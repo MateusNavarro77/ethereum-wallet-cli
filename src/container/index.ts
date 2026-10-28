@@ -3,6 +3,7 @@ import { CryptoService } from "../services/crypto.service.js"
 import { WalletService } from "../services/wallet.service.js"
 import { StorageService } from "../services/storage.service.js"
 import { RpcService } from "../services/rpc.service.js"
+import { NetworkService } from "../services/network.service.js"
 import { ClipboardService } from "../services/clipboard.service.js"
 import { KeystoreService } from "../services/keystore.service.js"
 
@@ -78,6 +79,7 @@ export function createDefaultContainer(): ServiceContainer {
   container.registerSingleton("walletService", () => new WalletService())
   container.registerSingleton("storageService", () => new StorageService())
   container.registerSingleton("rpcService", () => new RpcService())
+  container.registerSingleton("networkService", (c) => new NetworkService(c.resolve("rpcService"), c.resolve("storageService")))
   container.registerSingleton("clipboardService", () => new ClipboardService())
   container.registerSingleton("keystoreService", () => new KeystoreService())
 

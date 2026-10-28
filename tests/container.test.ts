@@ -13,11 +13,13 @@ describe("ServiceContainer", () => {
     const wallet = container.resolve("walletService")
     const storage = container.resolve("storageService")
     const rpc = container.resolve("rpcService")
+    const network = container.resolve("networkService")
     const clipboard = container.resolve("clipboardService")
 
     expect(wallet).toBeDefined()
     expect(storage).toBeDefined()
     expect(rpc).toBeDefined()
+    expect(network).toBeDefined()
     expect(clipboard).toBeDefined()
   })
 

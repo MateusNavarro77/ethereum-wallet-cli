@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import { createPublicClient } from "viem"
 import { RpcService } from "../src/services/rpc.service.js"
-import { SEPOLIA_NETWORK } from "../src/core/types.js"
+import { MAINNET_NETWORK, SEPOLIA_NETWORK } from "../src/core/types.js"
 
 describe("RpcService", () => {
   it("formats Ether correctly", () => {
@@ -29,5 +29,34 @@ describe("RpcService", () => {
     const balance = await rpc.getBalance("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
     expect(balance).toBe(mockBalance)
     expect(rpc.formatEther(balance)).toBe("2.5")
+  })
+
+  it("resolves block number using mock client", async () => {
+    const mockBlock = 12345678n
+    const mockClient = {
+      getBlockNumber: async () => mockBlock,
+    } as any
+
+    const rpc = new RpcService(SEPOLIA_NETWORK, mockClient)
+    const block = await rpc.getBlockNumber()
+    expect(block).toBe(mockBlock)
+  })
+
+  it("switches network successfully", () => {
+    const rpc = new RpcService(SEPOLIA_NETWORK)
+    expect(rpc.getNetwork().chainId).toBe(SEPOLIA_NETWORK.chainId)
+
+    rpc.switchNetwork(MAINNET_NETWORK)
+    expect(rpc.getNetwork().chainId).toBe(MAINNET_NETWORK.chainId)
+    expect(rpc.getNetwork().name).toBe("Ethereum Mainnet")
+  })
+
+  it("handles fallback URLs in transport config", () => {
+    const multiRpcNet = {
+      ...MAINNET_NETWORK,
+      rpcUrls: ["https://rpc1.example.com", "https://rpc2.example.com"],
+    }
+    const rpc = new RpcService(multiRpcNet)
+    expect(rpc.getNetwork().rpcUrls?.length).toBe(2)
   })
 })

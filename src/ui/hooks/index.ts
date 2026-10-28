@@ -5,4 +5,5 @@ export * from "./usePasswordForm.js"
 export * from "./useImportMnemonic.js"
 export * from "./useWalletFlow.js"
 export * from "./useMnemonicBackup.js"
+export * from "./useNetwork.js"
 

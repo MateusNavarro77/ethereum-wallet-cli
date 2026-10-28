@@ -1,5 +1,6 @@
 import type {
   Account,
+  AppConfig,
   EncryptedVault,
   HdAccount,
   ImportedAccount,
@@ -83,12 +84,40 @@ export interface IStorageService {
   loadVault(): Promise<EncryptedVault>
   deleteVault(): Promise<void>
   getVaultPath(): string
+  configExists(): Promise<boolean>
+  saveConfig(config: AppConfig): Promise<void>
+  loadConfig(): Promise<AppConfig>
+  getConfigPath(): string
 }
 
 export interface IRpcService {
   getBalance(address: `0x${string}`, chainId?: number): Promise<bigint>
+  getBlockNumber(): Promise<bigint>
+  verifyRpc(rpcUrl: string, expectedChainId?: number): Promise<{ chainId: number; healthy: boolean }>
+  switchNetwork(network: NetworkConfig): void
   formatEther(wei: bigint): string
   getNetwork(chainId?: number): NetworkConfig
+}
+
+export interface NetworkConnectionStatus {
+  connected: boolean
+  blockNumber?: bigint
+  latencyMs?: number
+  error?: string
+}
+
+export interface INetworkService {
+  getActiveNetwork(): NetworkConfig
+  setActiveNetwork(chainId: number): Promise<void>
+  getAllNetworks(): NetworkConfig[]
+  getPresets(): NetworkConfig[]
+  getCustomNetworks(): NetworkConfig[]
+  addCustomNetwork(network: Omit<NetworkConfig, "isTestnet" | "isLocal">): Promise<NetworkConfig>
+  editCustomNetwork(chainId: number, updates: Partial<NetworkConfig>): Promise<NetworkConfig>
+  removeCustomNetwork(chainId: number): Promise<void>
+  verifyRpcEndpoint(rpcUrl: string, expectedChainId?: number): Promise<{ chainId: number; healthy: boolean }>
+  getConnectionStatus(): Promise<NetworkConnectionStatus>
+  syncWallet(wallet?: WalletData): void
 }
 
 export interface IClipboardService {

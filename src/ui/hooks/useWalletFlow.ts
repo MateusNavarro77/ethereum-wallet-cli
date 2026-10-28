@@ -61,6 +61,7 @@ export function useWalletFlow(): UseWalletFlowResult {
   const storageService = useService("storageService")
   const walletService = useService("walletService")
   const cryptoService = useService("cryptoService")
+  const networkService = useService("networkService")
 
   const [step, setStep] = useState<AppStep>("initializing")
   const [createdPassword, setCreatedPassword] = useState("")
@@ -133,6 +134,7 @@ export function useWalletFlow(): UseWalletFlowResult {
 
       setWallet(createdWallet)
       setMasterPassword(createdPassword)
+      networkService?.syncWallet(createdWallet)
       setLoadingOverlay(null)
       setErrorMessage(null)
       setActiveAccount(createdWallet.accounts[0])
@@ -168,6 +170,7 @@ export function useWalletFlow(): UseWalletFlowResult {
 
         setWallet(importedWallet)
         setMasterPassword(password)
+        networkService?.syncWallet(importedWallet)
         setLoadingOverlay(null)
         setErrorMessage(null)
         setActiveAccount(importedWallet.accounts[0])
@@ -189,6 +192,7 @@ export function useWalletFlow(): UseWalletFlowResult {
     if (password) {
       setMasterPassword(password)
     }
+    networkService?.syncWallet(migrated)
     const currentActive =
       migrated.accounts.find(
         (a) => a.address.toLowerCase() === migrated.activeAddress?.toLowerCase() && !a.hidden,

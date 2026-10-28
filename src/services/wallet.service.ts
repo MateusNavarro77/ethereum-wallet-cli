@@ -77,6 +77,8 @@ export class WalletService implements IWalletService {
       accounts: [primaryAccount],
       activeAddress: primary.address,
       defaultChainId: SEPOLIA_NETWORK.chainId,
+      activeChainId: SEPOLIA_NETWORK.chainId,
+      customNetworks: [],
     }
   }
 
@@ -110,12 +112,17 @@ export class WalletService implements IWalletService {
       raw.activeAddress ||
       (migratedAccounts.find((a: any) => !a.hidden)?.address ?? migratedAccounts[0]?.address)
 
+    const activeChainId = raw.activeChainId || raw.defaultChainId || SEPOLIA_NETWORK.chainId
+    const customNetworks = Array.isArray(raw.customNetworks) ? [...raw.customNetworks] : []
+
     return {
       version: 2,
       mnemonic: raw.mnemonic,
       accounts: migratedAccounts,
       activeAddress,
-      defaultChainId: raw.defaultChainId || SEPOLIA_NETWORK.chainId,
+      defaultChainId: raw.defaultChainId || activeChainId,
+      activeChainId,
+      customNetworks,
     }
   }
 

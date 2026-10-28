@@ -6,4 +6,6 @@ export * from "./useImportMnemonic.js"
 export * from "./useWalletFlow.js"
 export * from "./useMnemonicBackup.js"
 export * from "./useNetwork.js"
+export * from "./usePortfolio.js"
+export * from "./useTokens.js"
 

@@ -6,6 +6,8 @@ import { RpcService } from "../services/rpc.service.js"
 import { NetworkService } from "../services/network.service.js"
 import { ClipboardService } from "../services/clipboard.service.js"
 import { KeystoreService } from "../services/keystore.service.js"
+import { TokenService } from "../services/token.service.js"
+import { PriceService } from "../services/price.service.js"
 
 export class ServiceContainer {
   private factories = new Map<ServiceToken, (c: ServiceContainer) => unknown>()
@@ -82,6 +84,11 @@ export function createDefaultContainer(): ServiceContainer {
   container.registerSingleton("networkService", (c) => new NetworkService(c.resolve("rpcService"), c.resolve("storageService")))
   container.registerSingleton("clipboardService", () => new ClipboardService())
   container.registerSingleton("keystoreService", () => new KeystoreService())
+  container.registerSingleton(
+    "tokenService",
+    (c) => new TokenService(c.resolve("storageService"), c.resolve("rpcService")),
+  )
+  container.registerSingleton("priceService", (c) => new PriceService(c.resolve("storageService")))
 
   return container
 }

@@ -3,6 +3,8 @@ import {
   http,
   fallback,
   formatEther as viemFormatEther,
+  formatUnits as viemFormatUnits,
+  erc20Abi,
   defineChain,
 } from "viem"
 import { mainnet, sepolia } from "viem/chains"
@@ -127,5 +129,91 @@ export class RpcService implements IRpcService {
 
   formatEther(wei: bigint): string {
     return viemFormatEther(wei)
+  }
+
+  formatUnits(value: bigint, decimals: number): string {
+    return viemFormatUnits(value, decimals)
+  }
+
+  async hasBytecode(address: `0x${string}`): Promise<boolean> {
+    try {
+      const code = await this.client.getBytecode({ address })
+      return Boolean(code && code !== "0x" && code !== "0x0")
+    } catch {
+      return false
+    }
+  }
+
+  async getTokenBalance(
+    tokenAddress: `0x${string}`,
+    accountAddress: `0x${string}`,
+  ): Promise<bigint> {
+    try {
+      const balance = (await this.client.readContract({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [accountAddress],
+      })) as bigint
+      return balance
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      throw new Error(
+        `Failed to fetch ERC-20 balance for ${tokenAddress} on ${this.network.rpcUrl}: ${message}`,
+      )
+    }
+  }
+
+  async getTokenMetadata(
+    tokenAddress: `0x${string}`,
+  ): Promise<{ name: string; symbol: string; decimals: number; isErc20: boolean }> {
+    try {
+      const [name, symbol, decimals] = await Promise.all([
+        this.client.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: "name",
+        }) as Promise<string>,
+        this.client.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: "symbol",
+        }) as Promise<string>,
+        this.client.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: "decimals",
+        }) as Promise<number>,
+      ])
+
+      return {
+        name: String(name),
+        symbol: String(symbol),
+        decimals: Number(decimals),
+        isErc20: true,
+      }
+    } catch {
+      // Try individually or check if decimals works
+      try {
+        const decimals = (await this.client.readContract({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: "decimals",
+        })) as number
+        return {
+          name: "Unknown Token",
+          symbol: "TOKEN",
+          decimals: Number(decimals),
+          isErc20: true,
+        }
+      } catch {
+        return {
+          name: "Unverified Contract",
+          symbol: "???",
+          decimals: 18,
+          isErc20: false,
+        }
+      }
+    }
   }
 }

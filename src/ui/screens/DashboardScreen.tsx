@@ -6,7 +6,13 @@ import { Footer } from "../components/Footer.js"
 import { ResetModal } from "../components/ResetModal.js"
 import { AccountsModal } from "../components/AccountsModal.js"
 import { NetworksModal } from "../components/NetworksModal.js"
-import { useBalance, useNetwork, useClipboardNotification } from "../hooks/index.js"
+import { TokensModal } from "../components/TokensModal.js"
+import {
+  usePortfolio,
+  useTokens,
+  useNetwork,
+  useClipboardNotification,
+} from "../hooks/index.js"
 import type {
   Account,
   HdAccount,
@@ -57,11 +63,12 @@ export function DashboardScreen({
   const [showResetModal, setShowResetModal] = useState(false)
   const [showAccountsModal, setShowAccountsModal] = useState(false)
   const [showNetworksModal, setShowNetworksModal] = useState(false)
+  const [showTokensModal, setShowTokensModal] = useState(false)
 
   const { notification, copyText, setNotification } = useClipboardNotification(3000)
 
   const handleBalanceUpdateSuccess = useCallback(() => {
-    setNotification("✔ Balance updated", 2500)
+    setNotification("✔ Balances updated", 2500)
   }, [setNotification])
 
   const {
@@ -75,10 +82,27 @@ export function DashboardScreen({
     refreshStatus,
   } = useNetwork()
 
-  const { balance, balanceError, network, refreshBalance } = useBalance(
-    account.address,
-    handleBalanceUpdateSuccess,
-  )
+  const {
+    isAggregate,
+    toggleAggregate,
+    nativeBalance,
+    nativeFiat,
+    tokens,
+    totalFiat,
+    isRefreshing,
+    lastUpdated,
+    error: portfolioError,
+    refresh: refreshPortfolio,
+  } = usePortfolio(account.address, wallet?.accounts, handleBalanceUpdateSuccess)
+
+  const {
+    tokens: allConfiguredTokens,
+    addToken,
+    toggleHideToken,
+    removeCustomToken,
+    verifyTokenContract,
+    refreshTokens,
+  } = useTokens(activeNetwork.chainId)
 
   const handleCopy = useCallback(async () => {
     await copyText(account.address, "✔ Address copied to clipboard!")
@@ -103,13 +127,19 @@ export function DashboardScreen({
   )
 
   useKeyboard((key) => {
-    if (showResetModal || showAccountsModal || showNetworksModal) return
+    if (showResetModal || showAccountsModal || showNetworksModal || showTokensModal) return
 
     if (key.name === "c" || key.name === "C") {
-      handleCopy()
+      if (!isAggregate) {
+        handleCopy()
+      }
     } else if (key.name === "r" || key.name === "R") {
-      refreshBalance()
+      refreshPortfolio()
       refreshStatus()
+    } else if (key.name === "p" || key.name === "P") {
+      toggleAggregate()
+    } else if (key.name === "t" || key.name === "T") {
+      setShowTokensModal(true)
     } else if (key.name === "a" || key.name === "A") {
       if (wallet) {
         setShowAccountsModal(true)
@@ -147,7 +177,11 @@ export function DashboardScreen({
 
   const badge = resolveBadge(account)
   const netBadge = resolveNetworkBadge(activeNetwork)
-  const networkShortName = activeNetwork.name.includes("Sepolia") ? "Sepolia" : activeNetwork.name
+  const networkShortName = activeNetwork.name.includes("Sepolia")
+    ? "Sepolia"
+    : activeNetwork.name.includes("Mainnet")
+      ? "Mainnet"
+      : activeNetwork.name
 
   return (
     <box
@@ -180,37 +214,59 @@ export function DashboardScreen({
         >
           {/* Account Details Card */}
           <box
-            title={` Account: ${account.label} ${badge} `}
+            title={isAggregate ? " Portfolio: All Accounts (Aggregate) [AGGREGATE] " : ` Account: ${account.label} ${badge} `}
             style={{
               border: true,
-              borderColor: "#10B981",
+              borderColor: isAggregate ? "#8B5CF6" : "#10B981",
               padding: 1,
               flexDirection: "column",
               marginBottom: 1,
             }}
           >
-            <box style={{ marginBottom: 1, flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#9CA3AF">Ethereum Address ({networkShortName}):</text>
-              {wallet && wallet.accounts.length > 1 ? (
-                <text fg="#60A5FA">[Tab] Quick Switch</text>
-              ) : null}
-            </box>
-            <box style={{ marginBottom: 1 }}>
-              <text fg="#60A5FA">
-                <b>{account.address}</b>
-              </text>
-            </box>
-            <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#9CA3AF">Press [<span fg="#60A5FA"><b>C</b></span>] to copy address</text>
-              {wallet ? (
-                <text fg="#FBBF24">Press [<span fg="#FBBF24"><b>A</b></span>] Manage Accounts</text>
-              ) : null}
-            </box>
+            {isAggregate ? (
+              <>
+                <box style={{ marginBottom: 1, flexDirection: "row", justifyContent: "space-between" }}>
+                  <text fg="#34D399">
+                    Aggregated view across {wallet ? wallet.accounts.filter((a) => !a.hidden).length : 1} visible accounts
+                  </text>
+                  <text fg="#C084FC">[P] Switch to Single</text>
+                </box>
+                <box style={{ marginBottom: 1 }}>
+                  <text fg="#9CA3AF">Showing combined native ETH and ERC-20 token balances for active network.</text>
+                </box>
+                <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <text fg="#C084FC">Press [<span fg="#C084FC"><b>P</b></span>] to return to single account view</text>
+                  {wallet ? (
+                    <text fg="#FBBF24">Press [<span fg="#FBBF24"><b>A</b></span>] Manage Accounts</text>
+                  ) : null}
+                </box>
+              </>
+            ) : (
+              <>
+                <box style={{ marginBottom: 1, flexDirection: "row", justifyContent: "space-between" }}>
+                  <text fg="#9CA3AF">Ethereum Address ({networkShortName}):</text>
+                  {wallet && wallet.accounts.length > 1 ? (
+                    <text fg="#60A5FA">[Tab] Quick Switch</text>
+                  ) : null}
+                </box>
+                <box style={{ marginBottom: 1 }}>
+                  <text fg="#60A5FA">
+                    <b>{account.address}</b>
+                  </text>
+                </box>
+                <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <text fg="#9CA3AF">Press [<span fg="#60A5FA"><b>C</b></span>] to copy address</text>
+                  {wallet ? (
+                    <text fg="#FBBF24">Press [<span fg="#FBBF24"><b>A</b></span>] Manage Accounts</text>
+                  ) : null}
+                </box>
+              </>
+            )}
           </box>
 
-          {/* Balance Card */}
+          {/* Balance & Portfolio Card (FR-BAL-01 to FR-BAL-08) */}
           <box
-            title=" Balance "
+            title={isAggregate ? " Aggregate Balances & Portfolio " : " Balances & Portfolio "}
             style={{
               border: true,
               borderColor: "#3B82F6",
@@ -219,15 +275,64 @@ export function DashboardScreen({
               marginBottom: 1,
             }}
           >
-            <box style={{ flexDirection: "row", alignItems: "center" }}>
-              <text fg="#10B981">
-                <b>{balance}</b>
-              </text>
+            {/* Native Balance */}
+            <box style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 1 }}>
+              <box style={{ flexDirection: "row", gap: 1 }}>
+                <text fg="#9CA3AF">Native ({activeNetwork.symbol}):</text>
+                <text fg="#10B981">
+                  <b>{nativeBalance}</b>
+                </text>
+                {nativeFiat ? <text fg="#60A5FA">(≈ {nativeFiat})</text> : null}
+              </box>
+              <text fg="#C084FC">[P] {isAggregate ? "Single View" : "Aggregate"}</text>
             </box>
 
-            {balanceError ? (
+            {/* ERC-20 Tokens List (FR-BAL-02) */}
+            <box style={{ flexDirection: "column", marginTop: 1, marginBottom: 1 }}>
+              <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
+                <text fg="#9CA3AF">ERC-20 Tokens ({tokens.length}):</text>
+                <text fg="#FBBF24">[T] Manage Tokens</text>
+              </box>
+              {tokens.length === 0 ? (
+                <text fg="#6B7280">No active tokens tracked. Press [T] to add or unhide tokens.</text>
+              ) : (
+                tokens.slice(0, 4).map((t) => (
+                  <box key={t.address} style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <text fg="#FFFFFF">
+                      • <b>{t.symbol}</b>: {t.formattedBalance} {t.symbol}
+                    </text>
+                    {t.fiatValue ? <text fg="#60A5FA">≈ {t.fiatValue}</text> : null}
+                  </box>
+                ))
+              )}
+              {tokens.length > 4 ? (
+                <text fg="#6B7280">+ {tokens.length - 4} more tokens... (Press [T] to view all)</text>
+              ) : null}
+            </box>
+
+            {/* Total Fiat Portfolio Value (FR-BAL-05) */}
+            {totalFiat ? (
+              <box style={{ flexDirection: "row", justifyContent: "space-between", borderTop: true, borderColor: "#374151", paddingTop: 1 }}>
+                <text fg="#9CA3AF">Est. Total Fiat Value:</text>
+                <text fg="#34D399"><b>{totalFiat} USD</b></text>
+              </box>
+            ) : null}
+
+            {/* Refreshing & Timestamp Status (FR-BAL-04) */}
+            <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
+              <text fg={isRefreshing ? "#FBBF24" : "#6B7280"}>
+                {isRefreshing
+                  ? "⟳ Updating balances..."
+                  : lastUpdated
+                    ? `Last updated: ${lastUpdated.toLocaleTimeString()}`
+                    : "Status: Initializing"}
+              </text>
+              <text fg="#60A5FA">[R] Refresh</text>
+            </box>
+
+            {portfolioError ? (
               <box style={{ marginTop: 1 }}>
-                <text fg="#F87171">⚠ {balanceError}</text>
+                <text fg="#F87171">⚠ {portfolioError}</text>
               </box>
             ) : null}
           </box>
@@ -331,12 +436,44 @@ export function DashboardScreen({
           status={status}
           onSelectNetwork={async (chainId) => {
             await switchNetwork(chainId)
-            await refreshBalance()
+            await refreshPortfolio()
+            refreshTokens()
           }}
           onAddNetwork={addNetwork}
           onEditNetwork={editNetwork}
           onRemoveNetwork={removeNetwork}
           onClose={() => setShowNetworksModal(false)}
+        />
+      )}
+
+      {/* ERC-20 Tokens Manager Modal (FR-BAL-02, FR-BAL-03, FR-BAL-07, FR-BAL-08) */}
+      {showTokensModal && (
+        <TokensModal
+          tokens={allConfiguredTokens}
+          chainId={activeNetwork.chainId}
+          onToggleHide={async (addr) => {
+            await toggleHideToken(addr)
+            await refreshPortfolio()
+          }}
+          onAddToken={async (tokenData) => {
+            await addToken({
+              address: tokenData.address,
+              name: tokenData.name,
+              symbol: tokenData.symbol,
+              decimals: tokenData.decimals,
+              chainId: activeNetwork.chainId,
+            })
+            await refreshPortfolio()
+          }}
+          onRemoveToken={async (addr) => {
+            await removeCustomToken(addr)
+            await refreshPortfolio()
+          }}
+          onVerifyToken={verifyTokenContract}
+          onClose={() => {
+            setShowTokensModal(false)
+            refreshPortfolio()
+          }}
         />
       )}
 
@@ -354,7 +491,7 @@ export function DashboardScreen({
       {/* Fullscreen Footer */}
       <Footer notification={notification}>
         <text fg="#9CA3AF">
-          [<span fg="#60A5FA"><b>C</b></span>] Copy  |  [<span fg="#FBBF24"><b>A</b></span>] Accounts  |  [<span fg="#34D399"><b>N</b></span>] Networks  |  [<span fg="#60A5FA"><b>R</b></span>] Refresh  |  [<span fg="#EF4444"><b>X</b></span>] Reset Vault  |  [<span fg="#9CA3AF"><b>Q</b></span>] Quit
+          [<span fg="#60A5FA"><b>C</b></span>] Copy  |  [<span fg="#C084FC"><b>P</b></span>] {isAggregate ? "Single" : "Aggregate"}  |  [<span fg="#FBBF24"><b>T</b></span>] Tokens  |  [<span fg="#FBBF24"><b>A</b></span>] Accounts  |  [<span fg="#34D399"><b>N</b></span>] Networks  |  [<span fg="#60A5FA"><b>R</b></span>] Refresh  |  [<span fg="#EF4444"><b>X</b></span>] Reset  |  [<span fg="#9CA3AF"><b>Q</b></span>] Quit
         </text>
       </Footer>
     </box>

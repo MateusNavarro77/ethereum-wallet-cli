@@ -7,4 +7,5 @@
 - [Iteration 5: Multi-Account Management, Keystore & Key Import/Export, and Backup Verification (Completed)](./iteration-5.md)
 - [Iteration 6: Accounts Modal Viewport Windowing & Overflow Fix (Completed)](./iteration-6.md)
 - [Iteration 7: Networks and RPC Management (Completed)](./iteration-7.md)
+- [Iteration 8: Balances, ERC-20 Tokens & Aggregate Portfolio (Completed)](./iteration-8.md)
 

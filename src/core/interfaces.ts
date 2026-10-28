@@ -5,6 +5,7 @@ import type {
   HdAccount,
   ImportedAccount,
   NetworkConfig,
+  TokenConfig,
   WalletData,
   WatchOnlyAccount,
   Web3KeystoreV3,
@@ -92,11 +93,41 @@ export interface IStorageService {
 
 export interface IRpcService {
   getBalance(address: `0x${string}`, chainId?: number): Promise<bigint>
+  getTokenBalance(tokenAddress: `0x${string}`, accountAddress: `0x${string}`, chainId?: number): Promise<bigint>
+  getTokenMetadata(tokenAddress: `0x${string}`, chainId?: number): Promise<{ name: string; symbol: string; decimals: number; isErc20: boolean }>
+  hasBytecode(address: `0x${string}`, chainId?: number): Promise<boolean>
   getBlockNumber(): Promise<bigint>
   verifyRpc(rpcUrl: string, expectedChainId?: number): Promise<{ chainId: number; healthy: boolean }>
   switchNetwork(network: NetworkConfig): void
   formatEther(wei: bigint): string
+  formatUnits(value: bigint, decimals: number): string
   getNetwork(chainId?: number): NetworkConfig
+}
+
+export interface TokenVerificationResult {
+  isValidErc20: boolean
+  warning?: string
+  metadata?: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+}
+
+export interface ITokenService {
+  getTokens(chainId: number): TokenConfig[]
+  addToken(token: Omit<TokenConfig, "isPreset">): Promise<TokenConfig>
+  toggleHideToken(chainId: number, address: `0x${string}`): Promise<void>
+  removeCustomToken(chainId: number, address: `0x${string}`): Promise<void>
+  verifyTokenContract(address: `0x${string}`, chainId?: number): Promise<TokenVerificationResult>
+  loadTokens(): Promise<void>
+}
+
+export interface IPriceService {
+  getPriceUsd(symbolOrAddress: string, chainId?: number): Promise<number | undefined>
+  getPricesUsd(items: { symbol: string; address?: string }[], chainId?: number): Promise<Record<string, number>>
+  isFiatEnabled(): boolean
+  setFiatEnabled(enabled: boolean): Promise<void>
 }
 
 export interface NetworkConnectionStatus {

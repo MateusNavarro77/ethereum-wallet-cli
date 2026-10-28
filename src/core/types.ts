@@ -36,9 +36,38 @@ export interface WalletData {
   customNetworks?: NetworkConfig[]
 }
 
+export interface TokenConfig {
+  address: `0x${string}`
+  symbol: string
+  name: string
+  decimals: number
+  chainId: number
+  hidden?: boolean
+  isPreset?: boolean
+}
+
+export interface TokenBalance extends TokenConfig {
+  balance: bigint
+  formattedBalance: string
+  fiatValue?: string
+}
+
+export interface PortfolioBalance {
+  nativeBalance: bigint
+  formattedNativeBalance: string
+  nativeFiatValue?: string
+  tokens: TokenBalance[]
+  totalFiatValue?: string
+  lastUpdated: Date
+}
+
 export interface AppConfig {
   activeChainId?: number
   customNetworks?: NetworkConfig[]
+  tokens?: Record<number, TokenConfig[]>
+  fiatCurrency?: string
+  fiatEnabled?: boolean
+  autoRefreshIntervalSeconds?: number
 }
 
 export interface EncryptedVault {
@@ -133,3 +162,42 @@ export const PRESET_NETWORKS: NetworkConfig[] = [
   SEPOLIA_NETWORK,
   ANVIL_NETWORK,
 ]
+
+export const PRESET_TOKENS: Record<number, TokenConfig[]> = {
+  1: [
+    {
+      address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      symbol: "USDC",
+      name: "USD Coin",
+      decimals: 6,
+      chainId: 1,
+      isPreset: true,
+    },
+    {
+      address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      symbol: "USDT",
+      name: "Tether USD",
+      decimals: 6,
+      chainId: 1,
+      isPreset: true,
+    },
+    {
+      address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+      symbol: "DAI",
+      name: "Dai Stablecoin",
+      decimals: 18,
+      chainId: 1,
+      isPreset: true,
+    },
+  ],
+  11155111: [
+    {
+      address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      symbol: "USDC",
+      name: "Sepolia USDC",
+      decimals: 6,
+      chainId: 11155111,
+      isPreset: true,
+    },
+  ],
+}

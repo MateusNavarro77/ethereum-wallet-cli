@@ -1,12 +1,12 @@
 import { describe, expect, it } from "bun:test"
-import { NetworkService } from "../src/services/network.service.js"
-import type { IRpcService } from "../src/core/interfaces.js"
-import type { NetworkConfig, WalletData } from "../src/core/types.js"
+import { NetworkService } from "../../src/services/network.service.js"
+import type { IRpcService } from "../../src/core/interfaces.js"
+import type { NetworkConfig, WalletData } from "../../src/core/types.js"
 import {
   MAINNET_NETWORK,
   SEPOLIA_NETWORK,
   ANVIL_NETWORK,
-} from "../src/core/types.js"
+} from "../../src/core/types.js"
 
 function createMockRpcService(overrides?: Partial<IRpcService>): IRpcService {
   let currentNetwork: NetworkConfig = SEPOLIA_NETWORK

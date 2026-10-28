@@ -1,14 +1,14 @@
 import { describe, expect, it } from "bun:test"
-import { testRender } from "./test-utils.js"
+import { testRender } from "../../test-utils.js"
 import { registerQRCode } from "@opentui/qrcode/react"
-import { ContainerProvider } from "../src/ui/context.js"
-import { createDefaultContainer } from "../src/container/index.js"
-import { AccountsModal } from "../src/ui/components/AccountsModal.js"
-import type { Account, WalletData } from "../src/core/types.js"
+import { ContainerProvider } from "../../../src/ui/context.js"
+import { createDefaultContainer } from "../../../src/container/index.js"
+import { AccountsModal } from "../../../src/ui/components/AccountsModal.js"
+import type { Account, WalletData } from "../../../src/core/types.js"
 
 registerQRCode()
 
-describe("Iteration 6: Accounts Modal Overflow Fix", () => {
+describe("Accounts modal", () => {
   const container = createDefaultContainer()
 
   // Generate 24 accounts to reproduce the exact scenario reported by the user

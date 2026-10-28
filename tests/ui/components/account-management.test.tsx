@@ -1,18 +1,18 @@
 import { describe, expect, it } from "bun:test"
-import { testRender } from "./test-utils.js"
+import { testRender, act } from "../../test-utils.js"
 import { registerQRCode } from "@opentui/qrcode/react"
-import { ContainerProvider } from "../src/ui/context.js"
-import { createDefaultContainer } from "../src/container/index.js"
-import { MnemonicScreen } from "../src/ui/screens/MnemonicScreen.js"
-import { ImportScreen } from "../src/ui/screens/ImportScreen.js"
-import { DashboardScreen } from "../src/ui/screens/DashboardScreen.js"
-import { AccountsModal } from "../src/ui/components/AccountsModal.js"
-import { ExportModal } from "../src/ui/components/ExportModal.js"
-import type { WalletData } from "../src/core/types.js"
+import { ContainerProvider } from "../../../src/ui/context.js"
+import { createDefaultContainer } from "../../../src/container/index.js"
+import { MnemonicScreen } from "../../../src/ui/screens/MnemonicScreen.js"
+import { ImportScreen } from "../../../src/ui/screens/ImportScreen.js"
+import { DashboardScreen } from "../../../src/ui/screens/DashboardScreen.js"
+import { AccountsModal } from "../../../src/ui/components/AccountsModal.js"
+import { ExportModal } from "../../../src/ui/components/ExportModal.js"
+import type { WalletData } from "../../../src/core/types.js"
 
 registerQRCode()
 
-describe("Iteration 5 UI Components", () => {
+describe("Account management UI", () => {
   const container = createDefaultContainer()
 
   const sampleWallet: WalletData = {
@@ -136,14 +136,98 @@ describe("Iteration 5 UI Components", () => {
     setup.renderer.destroy()
   })
 
-  it("renders ExportModal authentication step and warning (FR-ACC-09)", async () => {
+  it("handles account navigation, visibility, protected removal, and export entry", async () => {
+    const selected: string[] = []
+    const toggled: string[] = []
     const setup = await testRender(
       <ContainerProvider container={container}>
+        <AccountsModal wallet={sampleWallet} activeAccount={sampleWallet.accounts[0]} onSelectAccount={(a) => selected.push(a)}
+          onAddDerived={async () => sampleWallet.accounts[1] as any} onImportPrivateKey={async () => sampleWallet.accounts[2] as any}
+          onImportKeystore={async () => sampleWallet.accounts[2] as any} onAddWatchOnly={async () => sampleWallet.accounts[3] as any}
+          onRename={async () => {}} onToggleHide={async (a) => { toggled.push(a) }} onRemove={async () => {}}
+          onExportPrivateKey={async () => "0xsecret"} onExportMnemonic={async () => "seed"} onClose={() => {}} />
+      </ContainerProvider>, { width: 100, height: 35 },
+    )
+    await act(async () => {
+      setup.mockInput.pressKey("h")
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+    await setup.renderOnce()
+    expect(toggled).toEqual([sampleWallet.accounts[0].address])
+    act(() => setup.mockInput.pressKey("d"))
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("HD derived accounts cannot be removed")
+    act(() => setup.mockInput.pressArrow("down"))
+    await setup.renderOnce()
+    act(() => setup.mockInput.pressArrow("down"))
+    await setup.renderOnce()
+    act(() => setup.mockInput.pressKey("d"))
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("REMOVE ACCOUNT CONFIRMATION")
+    await act(async () => {
+      setup.mockInput.pressEnter()
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("Please type REMOVE")
+    setup.renderer.destroy()
+  })
+
+  it("renders rename and each account import form from the keyboard menu", async () => {
+    const renderModal = () => testRender(
+      <ContainerProvider container={container}>
+        <AccountsModal wallet={sampleWallet} activeAccount={sampleWallet.accounts[0]} onSelectAccount={() => {}}
+          onAddDerived={async () => sampleWallet.accounts[1] as any} onImportPrivateKey={async () => sampleWallet.accounts[2] as any}
+          onImportKeystore={async () => sampleWallet.accounts[2] as any} onAddWatchOnly={async () => sampleWallet.accounts[3] as any}
+          onRename={async () => {}} onToggleHide={async () => {}} onRemove={async () => {}}
+          onExportPrivateKey={async () => "0xkey"} onExportMnemonic={async () => "seed"} onClose={() => {}} />
+      </ContainerProvider>, { width: 100, height: 35 },
+    )
+    const setup = await renderModal()
+    act(() => setup.mockInput.pressKey("r"))
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("Rename Account")
+    await act(async () => {
+      setup.mockInput.pressEnter()
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    })
+    await setup.renderOnce()
+    act(() => setup.mockInput.pressKey("i"))
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("Select Import Method")
+    act(() => setup.mockInput.pressKey("1"))
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("Import Raw Private Key")
+    setup.renderer.destroy()
+
+    const keystore = await renderModal()
+    act(() => keystore.mockInput.pressKey("i"))
+    await keystore.renderOnce()
+    act(() => keystore.mockInput.pressKey("2"))
+    await keystore.renderOnce()
+    expect(keystore.captureCharFrame()).toContain("Import Web3 Keystore File")
+    keystore.renderer.destroy()
+
+    const watchOnly = await renderModal()
+    act(() => watchOnly.mockInput.pressKey("i"))
+    await watchOnly.renderOnce()
+    act(() => watchOnly.mockInput.pressKey("3"))
+    await watchOnly.renderOnce()
+    expect(watchOnly.captureCharFrame()).toContain("Add Watch-Only Account")
+    watchOnly.renderer.destroy()
+  })
+
+  it("renders ExportModal authentication step and warning (FR-ACC-09)", async () => {
+    let exportedPassword = ""
+    const exportContainer = createDefaultContainer()
+    exportContainer.registerInstance("clipboardService", { copy: async () => true } as any)
+    const setup = await testRender(
+      <ContainerProvider container={exportContainer}>
         <ExportModal
           title="Export Private Key for Account 1"
           sensitiveType="private-key"
           address="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-          onExport={async () => "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a0747231e"}
+          onExport={async (password) => { exportedPassword = password; return "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a0747231e" }}
           onClose={() => {}}
         />
       </ContainerProvider>,
@@ -155,6 +239,11 @@ describe("Iteration 5 UI Components", () => {
     expect(frame).toContain("Export Private Key for Account 1 (FR-ACC-09)")
     expect(frame).toContain("Master Password")
     expect(frame).toContain("Confirm Authentication")
+
+    act(() => setup.mockInput.pressEnter())
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("Master password required")
+    expect(exportedPassword).toBe("")
 
     setup.renderer.destroy()
   })

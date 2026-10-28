@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "bun:test"
-import { PriceService } from "../src/services/price.service.js"
-import type { IStorageService } from "../src/core/interfaces.js"
-import type { AppConfig } from "../src/core/types.js"
+import { PriceService } from "../../src/services/price.service.js"
+import type { IStorageService } from "../../src/core/interfaces.js"
+import type { AppConfig } from "../../src/core/types.js"
 
 describe("PriceService", () => {
   let mockConfig: AppConfig

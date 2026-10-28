@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
-import { WalletService } from "../src/services/wallet.service.js"
-import type { HdAccount } from "../src/core/types.js"
+import { WalletService } from "../../src/services/wallet.service.js"
+import type { HdAccount } from "../../src/core/types.js"
 
 describe("WalletService", () => {
   const walletService = new WalletService()

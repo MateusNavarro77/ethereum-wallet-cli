@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { KeystoreService } from "../src/services/keystore.service.js"
+import { KeystoreService } from "../../src/services/keystore.service.js"
 import crypto from "node:crypto"
 import { keccak256 } from "viem"
 import { privateKeyToAddress } from "viem/accounts"

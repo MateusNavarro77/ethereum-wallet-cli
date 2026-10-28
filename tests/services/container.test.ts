@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
-import { createDefaultContainer, ServiceContainer } from "../src/container/index.js"
-import type { IClipboardService } from "../src/core/interfaces.js"
+import { createDefaultContainer, ServiceContainer } from "../../src/container/index.js"
+import type { IClipboardService } from "../../src/core/interfaces.js"
 
 describe("ServiceContainer", () => {
   it("resolves default singleton services", () => {

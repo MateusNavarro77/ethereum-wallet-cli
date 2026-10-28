@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import { createPublicClient } from "viem"
-import { RpcService } from "../src/services/rpc.service.js"
-import { MAINNET_NETWORK, SEPOLIA_NETWORK } from "../src/core/types.js"
+import { RpcService } from "../../src/services/rpc.service.js"
+import { MAINNET_NETWORK, SEPOLIA_NETWORK } from "../../src/core/types.js"
 
 describe("RpcService", () => {
   it("formats Ether correctly", () => {

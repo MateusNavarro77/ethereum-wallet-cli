@@ -1,11 +1,11 @@
 import { describe, expect, it } from "bun:test"
 import { act } from "react"
-import { testRender } from "./test-utils.js"
-import { ContainerProvider } from "../src/ui/context.js"
-import { createDefaultContainer } from "../src/container/index.js"
-import { NetworksModal } from "../src/ui/components/NetworksModal.js"
-import { NetworkFormModal } from "../src/ui/components/NetworkFormModal.js"
-import { DashboardScreen } from "../src/ui/screens/DashboardScreen.js"
+import { testRender } from "../../test-utils.js"
+import { ContainerProvider } from "../../../src/ui/context.js"
+import { createDefaultContainer } from "../../../src/container/index.js"
+import { NetworksModal } from "../../../src/ui/components/NetworksModal.js"
+import { NetworkFormModal } from "../../../src/ui/components/NetworkFormModal.js"
+import { DashboardScreen } from "../../../src/ui/screens/DashboardScreen.js"
 import {
   MAINNET_NETWORK,
   SEPOLIA_NETWORK,
@@ -13,7 +13,7 @@ import {
   type NetworkConfig,
   type Account,
   type WalletData,
-} from "../src/core/types.js"
+} from "../../../src/core/types.js"
 
 const sampleCustomNet: NetworkConfig = {
   chainId: 1337,
@@ -42,7 +42,7 @@ const sampleWallet: WalletData = {
   customNetworks: [sampleCustomNet],
 }
 
-describe("Iteration 7 UI Components: Networks & RPC Management", () => {
+describe("Network management UI", () => {
   it("renders NetworksModal with presets, badges, active indicator, and fallback count (FR-NET-01, 05, 06, 08)", async () => {
     const container = createDefaultContainer()
     const allNetworks = [MAINNET_NETWORK, SEPOLIA_NETWORK, ANVIL_NETWORK, sampleCustomNet]

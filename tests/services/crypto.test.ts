@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { CryptoService } from "../src/services/crypto.service.js"
+import { CryptoService } from "../../src/services/crypto.service.js"
 
 describe("CryptoService", () => {
   const cryptoService = new CryptoService(10_000) // Lower iterations for fast test suite

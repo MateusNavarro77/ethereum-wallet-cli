@@ -1,22 +1,22 @@
 import { describe, expect, it } from "bun:test"
-import { testRender } from "./test-utils.js"
+import { testRender, act } from "../../test-utils.js"
 import { registerQRCode } from "@opentui/qrcode/react"
-import { ContainerProvider } from "../src/ui/context.js"
-import { createDefaultContainer } from "../src/container/index.js"
-import { WelcomeScreen } from "../src/ui/screens/WelcomeScreen.js"
-import { ImportScreen } from "../src/ui/screens/ImportScreen.js"
-import { PasswordScreen } from "../src/ui/screens/PasswordScreen.js"
-import { MnemonicScreen } from "../src/ui/screens/MnemonicScreen.js"
-import { DashboardScreen } from "../src/ui/screens/DashboardScreen.js"
-import { ReceiveScreen } from "../src/ui/screens/ReceiveScreen.js"
-import { UnlockScreen } from "../src/ui/screens/UnlockScreen.js"
-import { ResetModal } from "../src/ui/components/ResetModal.js"
-import { LogoBanner } from "../src/ui/components/LogoBanner.js"
-import type { Account } from "../src/core/types.js"
+import { ContainerProvider } from "../../../src/ui/context.js"
+import { createDefaultContainer } from "../../../src/container/index.js"
+import { WelcomeScreen } from "../../../src/ui/screens/WelcomeScreen.js"
+import { ImportScreen } from "../../../src/ui/screens/ImportScreen.js"
+import { PasswordScreen } from "../../../src/ui/screens/PasswordScreen.js"
+import { MnemonicScreen } from "../../../src/ui/screens/MnemonicScreen.js"
+import { DashboardScreen } from "../../../src/ui/screens/DashboardScreen.js"
+import { ReceiveScreen } from "../../../src/ui/screens/ReceiveScreen.js"
+import { UnlockScreen } from "../../../src/ui/screens/UnlockScreen.js"
+import { ResetModal } from "../../../src/ui/components/ResetModal.js"
+import { LogoBanner } from "../../../src/ui/components/LogoBanner.js"
+import type { Account } from "../../../src/core/types.js"
 
 registerQRCode()
 
-describe("UI Screens Rendering (Iteration 2)", () => {
+describe("UI screens", () => {
   const container = createDefaultContainer()
 
   it("renders WelcomeScreen without crashing", async () => {
@@ -28,6 +28,31 @@ describe("UI Screens Rendering (Iteration 2)", () => {
     )
     expect(setup.renderer).toBeDefined()
     setup.renderer.destroy()
+  })
+
+  it("navigates the wallet length chooser and import shortcut", async () => {
+    const created: number[] = []
+    const setup = await testRender(
+      <ContainerProvider container={container}><WelcomeScreen onCreateNew={(n) => created.push(n ?? 0)} onImport={() => created.push(-1)} /></ContainerProvider>,
+      { width: 100, height: 30 },
+    )
+    act(() => setup.mockInput.pressKey("1"))
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("Select Recovery Phrase Length")
+    act(() => setup.mockInput.pressArrow("down"))
+    await setup.renderOnce()
+    act(() => setup.mockInput.pressEnter())
+    await setup.renderOnce()
+    expect(created).toEqual([24])
+    setup.renderer.destroy()
+
+    const importSetup = await testRender(
+      <ContainerProvider container={container}><WelcomeScreen onCreateNew={() => {}} onImport={() => created.push(-1)} /></ContainerProvider>,
+      { width: 100, height: 30 },
+    )
+    act(() => importSetup.mockInput.pressKey("2"))
+    expect(created).toEqual([24, -1])
+    importSetup.renderer.destroy()
   })
 
   it("renders ImportScreen without crashing", async () => {
@@ -129,7 +154,7 @@ describe("UI Screens Rendering (Iteration 2)", () => {
     setup.renderer.destroy()
   })
 
-  describe("Branding & ASCII Art Banner (Iteration 4)", () => {
+  describe("Branding banner", () => {
     it("renders LogoBanner with ASCII banner and subtitle", async () => {
       const setup = await testRender(
         <LogoBanner subtitle="Test Subtitle" description="Test Description" />,

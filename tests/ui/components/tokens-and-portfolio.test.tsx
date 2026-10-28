@@ -1,17 +1,17 @@
 import { describe, expect, it } from "bun:test"
 import { act } from "react"
-import { testRender } from "./test-utils.js"
-import { ContainerProvider } from "../src/ui/context.js"
-import { createDefaultContainer } from "../src/container/index.js"
-import { TokensModal } from "../src/ui/components/TokensModal.js"
-import { TokenFormModal } from "../src/ui/components/TokenFormModal.js"
-import { DashboardScreen } from "../src/ui/screens/DashboardScreen.js"
+import { testRender } from "../../test-utils.js"
+import { ContainerProvider } from "../../../src/ui/context.js"
+import { createDefaultContainer } from "../../../src/container/index.js"
+import { TokensModal } from "../../../src/ui/components/TokensModal.js"
+import { TokenFormModal } from "../../../src/ui/components/TokenFormModal.js"
+import { DashboardScreen } from "../../../src/ui/screens/DashboardScreen.js"
 import {
   SEPOLIA_NETWORK,
   type Account,
   type WalletData,
   type TokenConfig,
-} from "../src/core/types.js"
+} from "../../../src/core/types.js"
 
 const sampleAccount1: Account = {
   address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
@@ -57,7 +57,7 @@ const sampleTokens: TokenConfig[] = [
   },
 ]
 
-describe("Iteration 8 UI Components: Balances, ERC-20 Tokens & Portfolio", () => {
+describe("Token and portfolio UI", () => {
   it("renders DashboardScreen with native balance, tokens list, and shortcuts (FR-BAL-01, FR-BAL-02, FR-BAL-04)", async () => {
     const container = createDefaultContainer()
     const mockRpc = {

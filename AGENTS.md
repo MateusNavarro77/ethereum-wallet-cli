@@ -27,7 +27,8 @@ Terminal Ethereum wallet (TUI). Bun + native ESM + TypeScript + OpenTUI React (`
 - Vault security: AES-256-GCM, PBKDF2-derived keys, file mode `0600`, explicit errors for corrupt data. Never log or expose decrypted wallet data or mnemonics.
 - BIP-44 derivation path `m/44'/60'/0'/0/index`; Sepolia chain ID from `core/types.ts` (`SEPOLIA_NETWORK`), not duplicated literals.
 - UI screens use OpenTUI: fullscreen flex, shared `Header`/`Footer`, `useKeyboard`, `useService` from `src/ui/context.tsx`. Register QR (`@opentui/qrcode`) before rendering `<qr-code>`.
-- UI tests: `testRender` from `tests/test-utils.tsx` (wraps `@opentui/react/test-utils` in `act`), `ContainerProvider`, destroy the renderer after each assertion.
+- UI tests: `testRender` from `tests/test-utils.tsx` (wraps `@opentui/react/test-utils` in `act`), `ContainerProvider`, destroy the renderer after each assertion. Import `act` from `tests/test-utils.tsx` and wrap every interaction or callback that can trigger React state updates (including `mockInput` keyboard events) in `act(() => ...)` or `await act(async () => ...)`; await `renderOnce()` after the interaction before asserting. This prevents React's "update was not wrapped in act(...)" warnings, as demonstrated in `tests/ui/components/account-management.test.tsx`.
+- Organize tests by the tested domain object, mirroring `src`: service tests in `tests/services/<service>.test.ts`, UI hook tests in `tests/ui/hooks`, screen tests in `tests/ui/screens`, and component tests in `tests/ui/components`. Put cross-object application flows in `tests/integration/<flow>.test.ts`; do not use iteration-number test filenames or suites.
 
 ## References
 

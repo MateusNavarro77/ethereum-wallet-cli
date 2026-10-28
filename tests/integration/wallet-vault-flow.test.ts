@@ -2,9 +2,9 @@ import { describe, expect, it, afterEach } from "bun:test"
 import { existsSync, unlinkSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { createDefaultContainer, ServiceContainer } from "../src/container/index.js"
-import { StorageService } from "../src/services/storage.service.js"
-import type { WalletData } from "../src/core/types.js"
+import { createDefaultContainer, ServiceContainer } from "../../src/container/index.js"
+import { StorageService } from "../../src/services/storage.service.js"
+import type { WalletData } from "../../src/core/types.js"
 
 describe("End-to-End Service Flow: Wallet Creation & Vault Recovery", () => {
   const tempDir = join(tmpdir(), `termiwallet-e2e-${Date.now()}`)

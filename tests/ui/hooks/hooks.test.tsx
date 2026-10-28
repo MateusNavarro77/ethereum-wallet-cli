@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { testRender, act } from "./test-utils.js"
-import { createDefaultContainer } from "../src/container/index.js"
-import { StorageService } from "../src/services/storage.service.js"
+import { testRender, act } from "../../test-utils.js"
+import { createDefaultContainer } from "../../../src/container/index.js"
+import { StorageService } from "../../../src/services/storage.service.js"
 import {
   useBalance,
   useClipboardNotification,
@@ -11,8 +11,8 @@ import {
   usePasswordForm,
   useImportMnemonic,
   useMnemonicBackup,
-} from "../src/ui/hooks/index.js"
-import { ContainerProvider } from "../src/ui/context.js"
+} from "../../../src/ui/hooks/index.js"
+import { ContainerProvider } from "../../../src/ui/context.js"
 
 describe("UI Custom Hooks", () => {
   describe("useBalance", () => {
@@ -349,6 +349,17 @@ describe("UI Custom Hooks", () => {
       expect(currentHook.words[11]).toBe("about")
       expect(currentHook.focusedIndex).toBe(11)
 
+      act(() => { currentHook.nextField(); currentHook.prevField(); currentHook.toggleWordCount() })
+      await setup.renderOnce()
+      expect(currentHook.wordCount).toBe(24)
+      expect(currentHook.words).toHaveLength(24)
+      act(() => currentHook.handleWordChange(0, "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"))
+      await setup.renderOnce()
+      expect(currentHook.focusedIndex).toBe(12)
+      act(() => currentHook.toggleWordCount())
+      await setup.renderOnce()
+      expect(currentHook.wordCount).toBe(12)
+
       setup.renderer.destroy()
     })
 
@@ -387,6 +398,12 @@ describe("UI Custom Hooks", () => {
       await setup.renderOnce()
       expect(currentHook.errorMessage).toBe("")
       expect(completedPhrase).toContain("abandon")
+
+      act(() => currentHook.setWords(Array(12).fill("not-a-valid-phrase")))
+      await setup.renderOnce()
+      act(() => currentHook.handleProceed())
+      await setup.renderOnce()
+      expect(currentHook.errorMessage).toContain("Invalid 12-word")
 
       setup.renderer.destroy()
     })
@@ -431,6 +448,30 @@ describe("UI Custom Hooks", () => {
       })
       await setup.renderOnce()
       expect(continued).toBe(true)
+
+      act(() => currentHook.proceedToVerification())
+      await setup.renderOnce()
+      expect(currentHook.stage).toBe("verify")
+      act(() => currentHook.handleVerifyAndSubmit())
+      await setup.renderOnce()
+      expect(currentHook.errorMessage).toContain("Please enter word #")
+      const first = currentHook.challenge[0]
+      act(() => currentHook.handleChallengeWordChange(0, "wrong"))
+      await setup.renderOnce()
+      act(() => currentHook.handleVerifyAndSubmit())
+      await setup.renderOnce()
+      expect(currentHook.errorMessage).toContain("does not match")
+      act(() => {
+        currentHook.challenge.forEach((item: any, idx: number) => currentHook.handleChallengeWordChange(idx, testMnemonic.split(" ")[item.index]))
+      })
+      await setup.renderOnce()
+      act(() => currentHook.handleVerifyAndSubmit())
+      await setup.renderOnce()
+      expect(continued).toBe(true)
+      act(() => currentHook.backToDisplay())
+      await setup.renderOnce()
+      expect(currentHook.stage).toBe("display")
+      expect(first.position).toBeGreaterThan(0)
 
       setup.renderer.destroy()
     })

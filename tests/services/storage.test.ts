@@ -2,8 +2,8 @@ import { describe, expect, it, afterEach } from "bun:test"
 import { statSync, unlinkSync, existsSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { StorageService } from "../src/services/storage.service.js"
-import type { AppConfig, EncryptedVault } from "../src/core/types.js"
+import { StorageService } from "../../src/services/storage.service.js"
+import type { AppConfig, EncryptedVault } from "../../src/core/types.js"
 
 describe("StorageService", () => {
   const tempDir = join(tmpdir(), `termiwallet-test-${Date.now()}`)

@@ -3,6 +3,7 @@ import { useKeyboard, useRenderer } from "@opentui/react"
 import { registerQRCode } from "@opentui/qrcode/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { HotkeyButton } from "../components/HotkeyButton.js"
 import { ResetModal } from "../components/ResetModal.js"
 import { AccountsModal } from "../components/AccountsModal.js"
 import { NetworksModal } from "../components/NetworksModal.js"
@@ -229,15 +230,15 @@ export function DashboardScreen({
                   <text fg="#34D399">
                     Aggregated view across {wallet ? wallet.accounts.filter((a) => !a.hidden).length : 1} visible accounts
                   </text>
-                  <text fg="#C084FC">[P] Switch to Single</text>
+                  <HotkeyButton onPress={toggleAggregate} color="#C084FC">[P] Switch to Single</HotkeyButton>
                 </box>
                 <box style={{ marginBottom: 1 }}>
                   <text fg="#9CA3AF">Showing combined native ETH and ERC-20 token balances for active network.</text>
                 </box>
                 <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <text fg="#C084FC">Press [<span fg="#C084FC"><b>P</b></span>] to return to single account view</text>
+                  <HotkeyButton onPress={toggleAggregate} color="#C084FC">[P] Return to single account view</HotkeyButton>
                   {wallet ? (
-                    <text fg="#FBBF24">Press [<span fg="#FBBF24"><b>A</b></span>] Manage Accounts</text>
+                    <HotkeyButton onPress={() => setShowAccountsModal(true)} color="#FBBF24">[A] Manage Accounts</HotkeyButton>
                   ) : null}
                 </box>
               </>
@@ -246,7 +247,7 @@ export function DashboardScreen({
                 <box style={{ marginBottom: 1, flexDirection: "row", justifyContent: "space-between" }}>
                   <text fg="#9CA3AF">Ethereum Address ({networkShortName}):</text>
                   {wallet && wallet.accounts.length > 1 ? (
-                    <text fg="#60A5FA">[Tab] Quick Switch</text>
+                    <HotkeyButton onPress={() => cycleAccount(1)}>[Tab] Quick Switch</HotkeyButton>
                   ) : null}
                 </box>
                 <box style={{ marginBottom: 1 }}>
@@ -255,9 +256,9 @@ export function DashboardScreen({
                   </text>
                 </box>
                 <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <text fg="#9CA3AF">Press [<span fg="#60A5FA"><b>C</b></span>] to copy address</text>
+                  <HotkeyButton onPress={handleCopy} color="#9CA3AF">[C] Copy address</HotkeyButton>
                   {wallet ? (
-                    <text fg="#FBBF24">Press [<span fg="#FBBF24"><b>A</b></span>] Manage Accounts</text>
+                    <HotkeyButton onPress={() => setShowAccountsModal(true)} color="#FBBF24">[A] Manage Accounts</HotkeyButton>
                   ) : null}
                 </box>
               </>
@@ -284,17 +285,17 @@ export function DashboardScreen({
                 </text>
                 {nativeFiat ? <text fg="#60A5FA">(≈ {nativeFiat})</text> : null}
               </box>
-              <text fg="#C084FC">[P] {isAggregate ? "Single View" : "Aggregate"}</text>
+              <HotkeyButton onPress={toggleAggregate} color="#C084FC">[P] {isAggregate ? "Single View" : "Aggregate"}</HotkeyButton>
             </box>
 
             {/* ERC-20 Tokens List (FR-BAL-02) */}
             <box style={{ flexDirection: "column", marginTop: 1, marginBottom: 1 }}>
               <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
                 <text fg="#9CA3AF">ERC-20 Tokens ({tokens.length}):</text>
-                <text fg="#FBBF24">[T] Manage Tokens</text>
+                <HotkeyButton onPress={() => setShowTokensModal(true)} color="#FBBF24">[T] Manage Tokens</HotkeyButton>
               </box>
               {tokens.length === 0 ? (
-                <text fg="#6B7280">No active tokens tracked. Press [T] to add or unhide tokens.</text>
+                <box style={{ flexDirection: "row", gap: 1 }}><text fg="#6B7280">No active tokens tracked.</text><HotkeyButton onPress={() => setShowTokensModal(true)} color="#FBBF24">[T] Add or unhide tokens</HotkeyButton></box>
               ) : (
                 tokens.slice(0, 4).map((t) => (
                   <box key={t.address} style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -306,7 +307,7 @@ export function DashboardScreen({
                 ))
               )}
               {tokens.length > 4 ? (
-                <text fg="#6B7280">+ {tokens.length - 4} more tokens... (Press [T] to view all)</text>
+                <HotkeyButton onPress={() => setShowTokensModal(true)} color="#6B7280">+ {tokens.length - 4} more tokens... [T] View all</HotkeyButton>
               ) : null}
             </box>
 
@@ -327,7 +328,7 @@ export function DashboardScreen({
                     ? `Last updated: ${lastUpdated.toLocaleTimeString()}`
                     : "Status: Initializing"}
               </text>
-              <text fg="#60A5FA">[R] Refresh</text>
+              <HotkeyButton onPress={() => { refreshPortfolio(); refreshStatus() }}>[R] Refresh</HotkeyButton>
             </box>
 
             {portfolioError ? (
@@ -490,9 +491,16 @@ export function DashboardScreen({
 
       {/* Fullscreen Footer */}
       <Footer notification={notification}>
-        <text fg="#9CA3AF">
-          [<span fg="#60A5FA"><b>C</b></span>] Copy  |  [<span fg="#C084FC"><b>P</b></span>] {isAggregate ? "Single" : "Aggregate"}  |  [<span fg="#FBBF24"><b>T</b></span>] Tokens  |  [<span fg="#FBBF24"><b>A</b></span>] Accounts  |  [<span fg="#34D399"><b>N</b></span>] Networks  |  [<span fg="#60A5FA"><b>R</b></span>] Refresh  |  [<span fg="#EF4444"><b>X</b></span>] Reset  |  [<span fg="#9CA3AF"><b>Q</b></span>] Quit
-        </text>
+        <box style={{ flexDirection: "row", gap: 1 }}>
+          {!isAggregate ? <HotkeyButton onPress={handleCopy}>[C] Copy</HotkeyButton> : null}
+          <HotkeyButton onPress={toggleAggregate} color="#C084FC">[P] {isAggregate ? "Single" : "Aggregate"}</HotkeyButton>
+          <HotkeyButton onPress={() => setShowTokensModal(true)} color="#FBBF24">[T] Tokens</HotkeyButton>
+          {wallet ? <HotkeyButton onPress={() => setShowAccountsModal(true)} color="#FBBF24">[A] Accounts</HotkeyButton> : null}
+          <HotkeyButton onPress={() => setShowNetworksModal(true)} color="#34D399">[N] Networks</HotkeyButton>
+          <HotkeyButton onPress={() => { refreshPortfolio(); refreshStatus() }}>[R] Refresh</HotkeyButton>
+          <HotkeyButton onPress={() => setShowResetModal(true)} color="#EF4444">[X] Reset</HotkeyButton>
+          <HotkeyButton onPress={() => { renderer.destroy(); process.exit(0) }} color="#9CA3AF">[Q] Quit</HotkeyButton>
+        </box>
       </Footer>
     </box>
   )

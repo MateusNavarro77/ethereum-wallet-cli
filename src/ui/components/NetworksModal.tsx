@@ -3,6 +3,7 @@ import { useKeyboard } from "@opentui/react"
 import type { NetworkConfig } from "../../core/types.js"
 import type { NetworkConnectionStatus } from "../../core/interfaces.js"
 import { NetworkFormModal, type NetworkFormData } from "./NetworkFormModal.js"
+import { HotkeyButton } from "./HotkeyButton.js"
 
 export interface NetworksModalProps {
   networks: NetworkConfig[]
@@ -260,8 +261,8 @@ export function NetworksModal({
             </text>
             <text fg="#9CA3AF">This action will delete the network configuration from your vault.</text>
             <box style={{ flexDirection: "row", gap: 2, marginTop: 1 }}>
-              <text fg="#EF4444"><b>[Y / Enter] Confirm Delete</b></text>
-              <text fg="#60A5FA">[N / Esc] Cancel</text>
+              <HotkeyButton onPress={handleDeleteConfirm} color="#EF4444"><b>[Y / Enter] Confirm Delete</b></HotkeyButton>
+              <HotkeyButton onPress={() => setMode("list")} color="#60A5FA">[N / Esc] Cancel</HotkeyButton>
             </box>
           </box>
         ) : null}
@@ -289,6 +290,8 @@ export function NetworksModal({
             return (
               <box
                 key={net.chainId}
+                onMouseOver={() => setSelectedIndex(actualIndex)}
+                onMouseDown={() => { setSelectedIndex(actualIndex); void handleSwitch(net) }}
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
@@ -369,11 +372,12 @@ export function NetworksModal({
           }}
         >
           <box style={{ flexDirection: "row", gap: 1 }}>
-            <text fg="#9CA3AF">
-              [<span fg="#34D399"><b>Enter</b></span>] Switch  |  [<span fg="#60A5FA"><b>A</b></span>] Add  |  [<span fg="#FBBF24"><b>E</b></span>] Edit  |  [<span fg="#EF4444"><b>D</b></span>] Delete
-            </text>
+            <HotkeyButton onPress={() => selectedNetwork && void handleSwitch(selectedNetwork)} color="#34D399">[Enter] Switch</HotkeyButton>
+            <HotkeyButton onPress={() => { setErrorMessage(null); setMode("add") }}>[A] Add</HotkeyButton>
+            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be modified (FR-NET-03)"); return } setErrorMessage(null); setMode("edit") }} color="#FBBF24">[E] Edit</HotkeyButton>
+            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be removed (FR-NET-03)"); return } setErrorMessage(null); setMode("confirm-delete") }} color="#EF4444">[D] Delete</HotkeyButton>
           </box>
-          <text fg="#60A5FA">[Esc] Close</text>
+          <HotkeyButton onPress={onClose}>[Esc] Close</HotkeyButton>
         </box>
       </box>
     </box>

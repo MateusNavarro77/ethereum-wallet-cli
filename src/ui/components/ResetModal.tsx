@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
+import { HotkeyButton } from "./HotkeyButton.js"
 
 interface ResetModalProps {
   onConfirm: () => void
@@ -88,8 +89,8 @@ export function ResetModal({ onConfirm, onCancel }: ResetModalProps) {
       ) : null}
 
       <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <text fg="#9CA3AF">[Enter] Confirm Wipe</text>
-        <text fg="#60A5FA">[Esc] Cancel & Keep Wallet</text>
+        <HotkeyButton onPress={handleSubmit} color="#9CA3AF">[Enter] Confirm Wipe</HotkeyButton>
+        <HotkeyButton onPress={onCancel}>[Esc] Cancel & Keep Wallet</HotkeyButton>
       </box>
     </box>
   )

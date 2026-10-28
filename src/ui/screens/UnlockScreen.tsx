@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useKeyboard, useRenderer } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { HotkeyButton } from "../components/HotkeyButton.js"
 import { LogoBanner } from "../components/LogoBanner.js"
 import { ResetModal } from "../components/ResetModal.js"
 import { useUnlock } from "../hooks/index.js"
@@ -101,8 +102,8 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
           ) : null}
 
           <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
-            <text fg="#9CA3AF">[Enter] Unlock Account</text>
-            <text fg="#EF4444">[X] Reset / Delete Vault</text>
+            <HotkeyButton onPress={handleUnlock} color="#9CA3AF">[Enter] Unlock Account</HotkeyButton>
+            <HotkeyButton onPress={() => setShowResetModal(true)} color="#EF4444">[X] Reset / Delete Vault</HotkeyButton>
           </box>
         </box>
       </box>
@@ -119,9 +120,7 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
       ) : null}
 
       <Footer>
-        <text fg="#9CA3AF">
-          [<span fg="#10B981"><b>Enter</b></span>] Unlock  |  [<span fg="#EF4444"><b>X</b></span>] Reset Vault  |  [<span fg="#9CA3AF"><b>Esc / Q</b></span>] Quit
-        </text>
+        <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={handleUnlock} color="#10B981">[Enter] Unlock</HotkeyButton><HotkeyButton onPress={() => setShowResetModal(true)} color="#EF4444">[X] Reset Vault</HotkeyButton><HotkeyButton onPress={() => { renderer.destroy(); process.exit(0) }} color="#9CA3AF">[Esc / Q] Quit</HotkeyButton></box>
       </Footer>
     </box>
   )

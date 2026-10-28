@@ -1,6 +1,7 @@
 import { useKeyboard } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { HotkeyButton } from "../components/HotkeyButton.js"
 import { useMnemonicBackup } from "../hooks/index.js"
 
 interface MnemonicScreenProps {
@@ -137,8 +138,8 @@ export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScree
               </box>
 
               <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
-                <text fg="#9CA3AF">[Enter] Proceed to Backup Verification</text>
-                {onCancel ? <text fg="#60A5FA">[Esc] Back</text> : null}
+                <HotkeyButton onPress={proceedToVerification} color="#9CA3AF">[Enter] Proceed to Backup Verification</HotkeyButton>
+                {onCancel ? <HotkeyButton onPress={onCancel}>[Esc] Back</HotkeyButton> : null}
               </box>
             </>
           ) : (
@@ -168,6 +169,7 @@ export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScree
                 {challenge.map((item, idx) => (
                   <box
                     key={item.position}
+                    onMouseDown={() => setFocusedChallengeIndex(idx)}
                     title={` Word #${item.position} `}
                     style={{
                       border: true,
@@ -193,8 +195,7 @@ export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScree
               ) : null}
 
               <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
-                <text fg="#9CA3AF">[Tab] Next Word | [Enter] Verify & Finish</text>
-                <text fg="#60A5FA">[Esc] Back to Words</text>
+                <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedChallengeIndex((focusedChallengeIndex + 1) % challenge.length)} color="#9CA3AF">[Tab] Next Word</HotkeyButton><HotkeyButton onPress={handleVerifyAndSubmit} color="#9CA3AF">[Enter] Verify & Finish</HotkeyButton><HotkeyButton onPress={backToDisplay}>[Esc] Back to Words</HotkeyButton></box>
               </box>
             </>
           )}
@@ -202,18 +203,7 @@ export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScree
       </box>
 
       <Footer>
-        <text fg="#9CA3AF">
-          {stage === "display" ? (
-            <>
-              [<span fg="#10B981"><b>Enter</b></span>] Continue to Verification
-              {onCancel ? <>  |  [<span fg="#EF4444"><b>Esc</b></span>] Back</> : null}
-            </>
-          ) : (
-            <>
-              [<span fg="#60A5FA"><b>Tab</b></span>] Next Word  |  [<span fg="#10B981"><b>Enter</b></span>] Verify & Save  |  [<span fg="#EF4444"><b>Esc</b></span>] Review Words
-            </>
-          )}
-        </text>
+        <box style={{ flexDirection: "row", gap: 1 }}>{stage === "display" ? <HotkeyButton onPress={proceedToVerification} color="#10B981">[Enter] Continue to Verification</HotkeyButton> : <><HotkeyButton onPress={() => setFocusedChallengeIndex((focusedChallengeIndex + 1) % challenge.length)} color="#60A5FA">[Tab] Next Word</HotkeyButton><HotkeyButton onPress={handleVerifyAndSubmit} color="#10B981">[Enter] Verify & Save</HotkeyButton><HotkeyButton onPress={backToDisplay} color="#EF4444">[Esc] Review Words</HotkeyButton></>}{stage === "display" && onCancel ? <HotkeyButton onPress={onCancel} color="#EF4444">[Esc] Back</HotkeyButton> : null}</box>
       </Footer>
     </box>
   )

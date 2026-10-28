@@ -11,6 +11,7 @@ import type {
   WatchOnlyAccount,
 } from "../../core/types.js"
 import { ExportModal } from "./ExportModal.js"
+import { HotkeyButton } from "./HotkeyButton.js"
 
 export interface AccountsModalProps {
   wallet: WalletData
@@ -408,13 +409,15 @@ export function AccountsModal({
           <text fg="#60A5FA">
             <b>Account Manager & Portfolio</b>
           </text>
-          <text fg="#9CA3AF">
-            {accounts.length} Account{accounts.length > 1 ? "s" : ""}
-            {accounts.length > PAGE_SIZE
-              ? ` (${effectiveOffset + 1}-${Math.min(accounts.length, effectiveOffset + PAGE_SIZE)} of ${accounts.length})`
-              : ""}
-            {" | [Esc] Close"}
-          </text>
+          <box style={{ flexDirection: "row", gap: 1 }}>
+            <text fg="#9CA3AF">
+              {accounts.length} Account{accounts.length > 1 ? "s" : ""}
+              {accounts.length > PAGE_SIZE
+                ? ` (${effectiveOffset + 1}-${Math.min(accounts.length, effectiveOffset + PAGE_SIZE)} of ${accounts.length})`
+                : ""}
+            </text>
+            <HotkeyButton onPress={onClose}>[Esc] Close</HotkeyButton>
+          </box>
         </box>
 
         {/* List Mode */}
@@ -445,9 +448,15 @@ export function AccountsModal({
                 return (
                   <box
                     key={acc.address}
+                    onMouseOver={() => setSelectedIndex(originalIndex)}
+                    onMouseDown={() => {
+                      setSelectedIndex(originalIndex)
+                      if (!acc.hidden) { onSelectAccount(acc.address); onClose() }
+                    }}
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
+                      backgroundColor: isSelected ? "#1F2937" : "transparent",
                     }}
                   >
                     <box style={{ flexDirection: "row" }}>
@@ -489,16 +498,16 @@ export function AccountsModal({
             {/* Hotkeys Bar */}
             <box style={{ flexDirection: "column", border: true, borderColor: "#374151", padding: 1 }}>
               <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
-                <text fg="#9CA3AF">[<span fg="#10B981"><b>Enter</b></span>] Switch Active</text>
-                <text fg="#9CA3AF">[<span fg="#60A5FA"><b>N</b></span>] Add Next Derived</text>
-                <text fg="#9CA3AF">[<span fg="#60A5FA"><b>R</b></span>] Rename</text>
-                <text fg="#9CA3AF">[<span fg="#60A5FA"><b>I</b></span>] Import Account</text>
+                <HotkeyButton onPress={() => { if (currentAccount && !currentAccount.hidden) { onSelectAccount(currentAccount.address); onClose() } }} color="#10B981">[Enter] Switch Active</HotkeyButton>
+                <HotkeyButton onPress={handleNextDerived}>[N] Add Next Derived</HotkeyButton>
+                <HotkeyButton onPress={handleStartRename}>[R] Rename</HotkeyButton>
+                <HotkeyButton onPress={() => { setErrorMessage(""); setMode("import-menu") }}>[I] Import Account</HotkeyButton>
               </box>
               <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <text fg="#9CA3AF">[<span fg="#F59E0B"><b>H</b></span>] Hide/Unhide</text>
-                <text fg="#9CA3AF">[<span fg="#EF4444"><b>D</b></span>] Remove Account</text>
-                <text fg="#9CA3AF">[<span fg="#FBBF24"><b>E</b></span>] Export Key</text>
-                <text fg="#9CA3AF">[<span fg="#FBBF24"><b>M</b></span>] Export Seed</text>
+                <HotkeyButton onPress={handleToggleHide} color="#F59E0B">[H] Hide/Unhide</HotkeyButton>
+                <HotkeyButton onPress={handleStartRemove} color="#EF4444">[D] Remove Account</HotkeyButton>
+                <HotkeyButton onPress={() => { if (!currentAccount) return; if (currentAccount.type === "watch-only") { setErrorMessage("Cannot export private key: this is a watch-only account"); return } setExportTarget({ type: "private-key", title: `Export Private Key for ${currentAccount.label}`, address: currentAccount.address }); setMode("exporting") }} color="#FBBF24">[E] Export Key</HotkeyButton>
+                <HotkeyButton onPress={() => { if (!wallet.mnemonic) { setErrorMessage("This wallet does not have a mnemonic seed phrase"); return } setExportTarget({ type: "mnemonic", title: "Export Master Recovery Phrase" }); setMode("exporting") }} color="#FBBF24">[M] Export Seed</HotkeyButton>
               </box>
             </box>
           </>
@@ -520,8 +529,8 @@ export function AccountsModal({
             </box>
             {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <text fg="#9CA3AF">[Enter] Save Label</text>
-              <text fg="#60A5FA">[Esc] Cancel</text>
+              <HotkeyButton onPress={handleSaveRename} color="#9CA3AF">[Enter] Save Label</HotkeyButton>
+              <HotkeyButton onPress={() => setMode("list")}>[Esc] Cancel</HotkeyButton>
             </box>
           </box>
         )}
@@ -534,21 +543,21 @@ export function AccountsModal({
             </box>
             <box style={{ border: true, borderColor: "#4B5563", padding: 1, flexDirection: "column", marginBottom: 1 }}>
               <box style={{ marginBottom: 1 }}>
-                <text fg="#34D399"><b>[1] Import Raw Private Key</b></text>
+                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-privkey") }} color="#34D399"><b>[1] Import Raw Private Key</b></HotkeyButton>
                 <text fg="#9CA3AF"> - Enter 32-byte hex private key (FR-ACC-04)</text>
               </box>
               <box style={{ marginBottom: 1 }}>
-                <text fg="#60A5FA"><b>[2] Import Web3 JSON Keystore File</b></text>
+                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setInputField3(""); setMode("import-keystore") }}><b>[2] Import Web3 JSON Keystore File</b></HotkeyButton>
                 <text fg="#9CA3AF"> - File path or JSON string with password (FR-ACC-05)</text>
               </box>
               <box>
-                <text fg="#FBBF24"><b>[3] Add Watch-Only Account</b></text>
+                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-watchonly") }} color="#FBBF24"><b>[3] Add Watch-Only Account</b></HotkeyButton>
                 <text fg="#9CA3AF"> - Address only, tracking without signing (FR-ACC-08)</text>
               </box>
             </box>
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <text fg="#9CA3AF">Press [1], [2], or [3]</text>
-              <text fg="#60A5FA">[Esc] Back to Accounts</text>
+              <HotkeyButton onPress={() => setMode("list")}>[Esc] Back to Accounts</HotkeyButton>
             </box>
           </box>
         )}
@@ -559,7 +568,7 @@ export function AccountsModal({
             <box style={{ marginBottom: 1 }}>
               <text fg="#34D399"><b>Import Raw Private Key (FR-ACC-04)</b></text>
             </box>
-            <box title=" 32-Byte Hex Private Key (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(0)} title=" 32-Byte Hex Private Key (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
               <input
                 placeholder="0x..."
                 value={inputField1}
@@ -567,7 +576,7 @@ export function AccountsModal({
                 focused={focusedInput === 0}
               />
             </box>
-            <box title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(1)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
               <input
                 placeholder="e.g. My Imported Dev Key"
                 value={inputField2}
@@ -577,8 +586,7 @@ export function AccountsModal({
             </box>
             {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <text fg="#9CA3AF">[Tab] Switch Field | [Enter] Import Key</text>
-              <text fg="#60A5FA">[Esc] Back</text>
+              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 2)} color="#9CA3AF">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSavePrivateKey} color="#9CA3AF">[Enter] Import Key</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")}>[Esc] Back</HotkeyButton></box>
             </box>
           </box>
         )}
@@ -589,7 +597,7 @@ export function AccountsModal({
             <box style={{ marginBottom: 1 }}>
               <text fg="#60A5FA"><b>Import Web3 Keystore File (FR-ACC-05)</b></text>
             </box>
-            <box title=" File Path (e.g. ~/.ethereum/keystore/... or paste JSON) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(0)} title=" File Path (e.g. ~/.ethereum/keystore/... or paste JSON) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
               <input
                 placeholder="/path/to/keystore.json"
                 value={inputField1}
@@ -597,7 +605,7 @@ export function AccountsModal({
                 focused={focusedInput === 0}
               />
             </box>
-            <box title=" Keystore Decryption Password " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(1)} title=" Keystore Decryption Password " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
               <input
                 placeholder="Keystore password..."
                 value={inputField2}
@@ -605,7 +613,7 @@ export function AccountsModal({
                 focused={focusedInput === 1}
               />
             </box>
-            <box title=" Account Label " style={{ border: true, borderColor: focusedInput === 2 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(2)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 2 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
               <input
                 placeholder="e.g. Geth Imported Account"
                 value={inputField3}
@@ -615,8 +623,7 @@ export function AccountsModal({
             </box>
             {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <text fg="#9CA3AF">[Tab] Switch Field | [Enter] Decrypt & Import</text>
-              <text fg="#60A5FA">[Esc] Back</text>
+              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 3)} color="#9CA3AF">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSaveKeystore} color="#9CA3AF">[Enter] Decrypt & Import</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")}>[Esc] Back</HotkeyButton></box>
             </box>
           </box>
         )}
@@ -627,7 +634,7 @@ export function AccountsModal({
             <box style={{ marginBottom: 1 }}>
               <text fg="#FBBF24"><b>Add Watch-Only Account (FR-ACC-08)</b></text>
             </box>
-            <box title=" Ethereum Address (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(0)} title=" Ethereum Address (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
               <input
                 placeholder="0x..."
                 value={inputField1}
@@ -635,7 +642,7 @@ export function AccountsModal({
                 focused={focusedInput === 0}
               />
             </box>
-            <box title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(1)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
               <input
                 placeholder="e.g. Treasury Watcher"
                 value={inputField2}
@@ -645,8 +652,7 @@ export function AccountsModal({
             </box>
             {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <text fg="#9CA3AF">[Tab] Switch Field | [Enter] Add Watch-Only</text>
-              <text fg="#60A5FA">[Esc] Back</text>
+              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 2)} color="#9CA3AF">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSaveWatchOnly} color="#9CA3AF">[Enter] Add Watch-Only</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")}>[Esc] Back</HotkeyButton></box>
             </box>
           </box>
         )}
@@ -673,8 +679,8 @@ export function AccountsModal({
             </box>
             {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <text fg="#EF4444">[Enter] Permanently Remove</text>
-              <text fg="#60A5FA">[Esc] Cancel</text>
+              <HotkeyButton onPress={handleConfirmRemove} color="#EF4444">[Enter] Permanently Remove</HotkeyButton>
+              <HotkeyButton onPress={() => setMode("list")}>[Esc] Cancel</HotkeyButton>
             </box>
           </box>
         )}

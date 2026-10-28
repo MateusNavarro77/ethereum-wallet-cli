@@ -1,6 +1,7 @@
 import { useKeyboard } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { HotkeyButton } from "../components/HotkeyButton.js"
 import { LogoBanner } from "../components/LogoBanner.js"
 import { usePasswordForm } from "../hooks/index.js"
 
@@ -77,6 +78,7 @@ export function PasswordScreen({
 
           {/* Password Field */}
           <box
+            onMouseDown={() => setFocusedField("password")}
             title=" Wallet Password "
             style={{
               border: true,
@@ -96,6 +98,7 @@ export function PasswordScreen({
 
           {/* Confirm Password Field */}
           <box
+            onMouseDown={() => setFocusedField("confirm")}
             title=" Confirm Password "
             style={{
               border: true,
@@ -127,17 +130,13 @@ export function PasswordScreen({
           ) : null}
 
           <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
-            <text fg="#9CA3AF">[Tab] Switch field | [Enter] Continue</text>
-            {onCancel ? <text fg="#60A5FA">[Esc] Back</text> : null}
+            <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={toggleFocus} color="#9CA3AF">[Tab] Switch field</HotkeyButton><HotkeyButton onPress={handleProceed} color="#9CA3AF">[Enter] Continue</HotkeyButton>{onCancel ? <HotkeyButton onPress={onCancel}>[Esc] Back</HotkeyButton> : null}</box>
           </box>
         </box>
       </box>
 
       <Footer>
-        <text fg="#9CA3AF">
-          [<span fg="#60A5FA"><b>Tab</b></span>] Switch Field  |  [<span fg="#10B981"><b>Enter</b></span>] Continue
-          {onCancel ? <>  |  [<span fg="#EF4444"><b>Esc</b></span>] Back</> : null}
-        </text>
+        <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={toggleFocus} color="#60A5FA">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleProceed} color="#10B981">[Enter] Continue</HotkeyButton>{onCancel ? <HotkeyButton onPress={onCancel} color="#EF4444">[Esc] Back</HotkeyButton> : null}</box>
       </Footer>
     </box>
   )

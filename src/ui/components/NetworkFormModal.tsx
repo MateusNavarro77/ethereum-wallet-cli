@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react"
 import { useKeyboard } from "@opentui/react"
+import { HotkeyButton } from "./HotkeyButton.js"
 import type { NetworkConfig } from "../../core/types.js"
 
 export interface NetworkFormData {
@@ -133,6 +134,7 @@ export function NetworkFormModal({
 
         {/* 1. Network Name */}
         <box
+          onMouseDown={() => setFocusedInput(0)}
           title=" Network Name "
           style={{
             border: true,
@@ -151,6 +153,7 @@ export function NetworkFormModal({
 
         {/* 2. RPC Endpoint(s) */}
         <box
+          onMouseDown={() => setFocusedInput(1)}
           title=" RPC URL(s) (Comma-separated for fallback - FR-NET-05) "
           style={{
             border: true,
@@ -169,6 +172,7 @@ export function NetworkFormModal({
 
         {/* 3. Chain ID */}
         <box
+          onMouseDown={() => setFocusedInput(2)}
           title=" Chain ID (Optional: leave blank to auto-detect - FR-NET-04) "
           style={{
             border: true,
@@ -187,6 +191,7 @@ export function NetworkFormModal({
 
         {/* 4. Currency Symbol */}
         <box
+          onMouseDown={() => setFocusedInput(3)}
           title=" Currency Symbol (Default: ETH) "
           style={{
             border: true,
@@ -205,6 +210,7 @@ export function NetworkFormModal({
 
         {/* 5. Explorer URL */}
         <box
+          onMouseDown={() => setFocusedInput(4)}
           title=" Block Explorer URL (Optional) "
           style={{
             border: true,
@@ -236,10 +242,11 @@ export function NetworkFormModal({
 
         {/* Action hints */}
         <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-          <text fg="#9CA3AF">
-            [<span fg="#60A5FA"><b>Tab / ↑↓</b></span>] Next Field  |  [<span fg="#34D399"><b>Enter</b></span>] Test & Save
-          </text>
-          <text fg="#EF4444">[Esc] Cancel</text>
+          <box style={{ flexDirection: "row", gap: 1 }}>
+            <HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 5)}>[Tab / ↓] Next</HotkeyButton>
+            <HotkeyButton onPress={handleSave} color="#34D399">[Enter] Test & Save</HotkeyButton>
+            <HotkeyButton onPress={onCancel} color="#EF4444">[Esc] Cancel</HotkeyButton>
+          </box>
         </box>
       </box>
     </box>

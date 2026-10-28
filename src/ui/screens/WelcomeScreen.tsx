@@ -3,6 +3,7 @@ import { useKeyboard, useRenderer } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
 import { LogoBanner } from "../components/LogoBanner.js"
+import { HotkeyButton } from "../components/HotkeyButton.js"
 
 interface WelcomeScreenProps {
   onCreateNew: (wordCount?: 12 | 24) => void
@@ -12,10 +13,18 @@ interface WelcomeScreenProps {
 export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
   const renderer = useRenderer()
   const [selectingWordCount, setSelectingWordCount] = useState(false)
+  const [selectedOption, setSelectedOption] = useState(0)
+  const activateOption = (index: number) => selectingWordCount
+    ? onCreateNew(index === 0 ? 12 : 24)
+    : index === 0 ? setSelectingWordCount(true) : onImport()
 
   useKeyboard((key) => {
     if (selectingWordCount) {
-      if (key.name === "1") {
+      if (["up", "down", "left", "right"].includes(key.name)) {
+        setSelectedOption((prev) => prev === 0 ? 1 : 0)
+      } else if (key.name === "return" || key.name === "space") {
+        activateOption(selectedOption)
+      } else if (key.name === "1") {
         onCreateNew(12)
       } else if (key.name === "2") {
         onCreateNew(24)
@@ -23,7 +32,11 @@ export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
         setSelectingWordCount(false)
       }
     } else {
-      if (key.name === "1") {
+      if (["up", "down", "left", "right"].includes(key.name)) {
+        setSelectedOption((prev) => prev === 0 ? 1 : 0)
+      } else if (key.name === "return" || key.name === "space") {
+        activateOption(selectedOption)
+      } else if (key.name === "1") {
         setSelectingWordCount(true)
       } else if (key.name === "2") {
         onImport()
@@ -77,14 +90,14 @@ export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
                 marginBottom: 1,
               }}
             >
-              <box style={{ flexDirection: "row", marginBottom: 1 }}>
+              <box onMouseDown={() => activateOption(0)} onMouseOver={() => setSelectedOption(0)} style={{ flexDirection: "row", marginBottom: 1, backgroundColor: selectedOption === 0 ? "#1F2937" : "transparent" }}>
                 <text fg="#34D399">
                   <b>[1] Create New Wallet</b>
                 </text>
                 <text fg="#9CA3AF"> - Generate 12 or 24 words</text>
               </box>
 
-              <box style={{ flexDirection: "row" }}>
+              <box onMouseDown={() => activateOption(1)} onMouseOver={() => setSelectedOption(1)} style={{ flexDirection: "row", backgroundColor: selectedOption === 1 ? "#1F2937" : "transparent" }}>
                 <text fg="#60A5FA">
                   <b>[2] Import from Mnemonic</b>
                 </text>
@@ -107,14 +120,14 @@ export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
                 </text>
               </box>
 
-              <box style={{ flexDirection: "row", marginBottom: 1 }}>
+              <box onMouseDown={() => activateOption(0)} onMouseOver={() => setSelectedOption(0)} style={{ flexDirection: "row", marginBottom: 1, backgroundColor: selectedOption === 0 ? "#1F2937" : "transparent" }}>
                 <text fg="#34D399">
                   <b>[1] 12 Words</b>
                 </text>
                 <text fg="#9CA3AF"> - Standard security (128-bit entropy)</text>
               </box>
 
-              <box style={{ flexDirection: "row" }}>
+              <box onMouseDown={() => activateOption(1)} onMouseOver={() => setSelectedOption(1)} style={{ flexDirection: "row", backgroundColor: selectedOption === 1 ? "#1F2937" : "transparent" }}>
                 <text fg="#60A5FA">
                   <b>[2] 24 Words</b>
                 </text>
@@ -126,25 +139,17 @@ export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
           <box style={{ alignItems: "center" }}>
             <text fg="#9CA3AF">
               {selectingWordCount
-                ? "Press [1] for 12 words, [2] for 24 words, or [Esc] to go back"
-                : "Press [1] or [2] on your keyboard to continue"}
+                ? "Use ↑/↓ and Enter, click an option, or press 1/2. Esc goes back."
+                : "Use ↑/↓ and Enter, click an option, or press 1/2."}
             </text>
           </box>
         </box>
       </box>
 
       <Footer>
-        <text fg="#9CA3AF">
-          {selectingWordCount ? (
-            <>
-              [<span fg="#34D399"><b>1</b></span>] 12 Words  |  [<span fg="#60A5FA"><b>2</b></span>] 24 Words  |  [<span fg="#EF4444"><b>Esc</b></span>] Back
-            </>
-          ) : (
-            <>
-              [<span fg="#60A5FA"><b>1</b></span>] Create New  |  [<span fg="#60A5FA"><b>2</b></span>] Import  |  [<span fg="#EF4444"><b>Q</b></span>] Quit
-            </>
-          )}
-        </text>
+        <box style={{ flexDirection: "row", gap: 1 }}>
+          {selectingWordCount ? <><HotkeyButton onPress={() => onCreateNew(12)} color="#34D399">[1] 12 Words</HotkeyButton><HotkeyButton onPress={() => onCreateNew(24)}>[2] 24 Words</HotkeyButton><HotkeyButton onPress={() => setSelectingWordCount(false)} color="#EF4444">[Esc] Back</HotkeyButton></> : <><HotkeyButton onPress={() => setSelectingWordCount(true)}>[1] Create New</HotkeyButton><HotkeyButton onPress={onImport}>[2] Import</HotkeyButton><HotkeyButton onPress={() => { renderer.destroy(); process.exit(0) }} color="#EF4444">[Q] Quit</HotkeyButton></>}
+        </box>
       </Footer>
     </box>
   )

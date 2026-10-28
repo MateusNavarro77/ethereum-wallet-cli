@@ -1,6 +1,7 @@
 import { useKeyboard } from "@opentui/react"
 import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
+import { HotkeyButton } from "../components/HotkeyButton.js"
 import { useImportMnemonic } from "../hooks/index.js"
 
 interface ImportScreenProps {
@@ -21,7 +22,9 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
   } = useImportMnemonic({ onComplete })
 
   useKeyboard((key) => {
-    if (key.name === "escape") {
+    if (key.name === "t" || key.name === "T") {
+      toggleWordCount()
+    } else if (key.name === "escape") {
       onCancel()
     } else if (key.name === "tab") {
       setFocusedIndex((prev) => (prev + 1) % wordCount)
@@ -80,10 +83,9 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
             <text fg="#34D399">[{wordCount} Words]</text>
           </box>
 
-          <box style={{ marginBottom: 1 }}>
-            <text fg="#9CA3AF">
-              Tip: Paste entire phrase into #1 to auto-split. Press [T] to toggle 12/24 words.
-            </text>
+          <box style={{ marginBottom: 1, flexDirection: "row", alignItems: "center", gap: 1 }}>
+            <text fg="#9CA3AF">Tip: Paste phrase into #1 to auto-split. Toggle phrase length:</text>
+            <HotkeyButton onPress={toggleWordCount} color="#34D399">[T] {wordCount === 12 ? "Use 24 words" : "Use 12 words"}</HotkeyButton>
           </box>
 
           {/* Numbered Inputs arranged in 3 columns */}
@@ -96,6 +98,7 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
                   {colIndices.map((idx) => (
                     <box
                       key={idx}
+                      onMouseDown={() => setFocusedIndex(idx)}
                       title={` #${String(idx + 1).padStart(2, " ")} `}
                       style={{
                         border: true,
@@ -124,16 +127,15 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
           ) : null}
 
           <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <text fg="#9CA3AF">[Tab] Next | [Enter] Continue</text>
-            <text fg="#60A5FA">[Esc] Back</text>
+            <HotkeyButton onPress={() => setFocusedIndex((prev) => (prev + 1) % wordCount)} color="#9CA3AF">[Tab] Next</HotkeyButton>
+            <HotkeyButton onPress={handleProceed} color="#9CA3AF">[Enter] Continue</HotkeyButton>
+            <HotkeyButton onPress={onCancel}>[Esc] Back</HotkeyButton>
           </box>
         </box>
       </box>
 
       <Footer>
-        <text fg="#9CA3AF">
-          [<span fg="#60A5FA"><b>Tab</b></span>] Next Field  |  [<span fg="#10B981"><b>Enter</b></span>] Submit  |  [<span fg="#34D399"><b>T</b></span>] Toggle 12/24  |  [<span fg="#EF4444"><b>Esc</b></span>] Back
-        </text>
+        <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedIndex((prev) => (prev + 1) % wordCount)} color="#60A5FA">[Tab] Next Field</HotkeyButton><HotkeyButton onPress={handleProceed} color="#10B981">[Enter] Submit</HotkeyButton><HotkeyButton onPress={toggleWordCount} color="#34D399">[T] Toggle 12/24</HotkeyButton><HotkeyButton onPress={onCancel} color="#EF4444">[Esc] Back</HotkeyButton></box>
       </Footer>
     </box>
   )

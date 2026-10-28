@@ -3,6 +3,7 @@ import { useKeyboard } from "@opentui/react"
 import type { TokenConfig } from "../../core/types.js"
 import type { TokenVerificationResult } from "../../core/interfaces.js"
 import { TokenFormModal, type TokenFormData } from "./TokenFormModal.js"
+import { HotkeyButton } from "./HotkeyButton.js"
 
 export interface TokensModalProps {
   tokens: TokenConfig[]
@@ -189,17 +190,15 @@ export function TokensModal({
             Are you sure you want to remove {selectedToken.name} ({selectedToken.address})?
           </text>
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text fg="#EF4444">
-              <b>[Enter / Y] Confirm Delete</b>
-            </text>
-            <text fg="#9CA3AF">[Esc / N] Cancel</text>
+            <HotkeyButton onPress={confirmDelete} color="#EF4444"><b>[Enter / Y] Confirm Delete</b></HotkeyButton>
+            <HotkeyButton onPress={() => setMode("list")} color="#9CA3AF">[Esc / N] Cancel</HotkeyButton>
           </box>
         </box>
       )}
 
       <box flexDirection="column">
         {visibleTokens.length === 0 ? (
-          <text fg="#6B7280">No tokens tracked on this chain yet. Press [A] to add one.</text>
+          <box style={{ flexDirection: "row", gap: 1 }}><text fg="#6B7280">No tokens tracked on this chain yet.</text><HotkeyButton onPress={() => { setMode("add"); setStatusMessage(null); setErrorMessage(null) }} color="#34D399">[A] Add Token</HotkeyButton></box>
         ) : (
           visibleTokens.map((token, index) => {
             const actualIndex = effectiveOffset + index
@@ -208,6 +207,8 @@ export function TokensModal({
             return (
               <box
                 key={`${token.chainId}-${token.address}`}
+                onMouseOver={() => setSelectedIndex(actualIndex)}
+                onMouseDown={() => setSelectedIndex(actualIndex)}
                 flexDirection="row"
                 justifyContent="space-between"
                 backgroundColor={isSelected ? "#1E1B4B" : undefined}
@@ -252,10 +253,10 @@ export function TokensModal({
       )}
 
       <box marginTop={1} paddingTop={1} borderStyle="single" borderColor="#374151" flexDirection="row" gap={2}>
-        <text fg="#34D399">[A] Add Token</text>
-        <text fg="#FBBF24">[H] Hide/Unhide</text>
-        <text fg="#EF4444">[D] Delete</text>
-        <text fg="#9CA3AF">[Esc] Close</text>
+        <HotkeyButton onPress={() => { setMode("add"); setStatusMessage(null); setErrorMessage(null) }} color="#34D399">[A] Add Token</HotkeyButton>
+        <HotkeyButton onPress={handleToggleHide} color="#FBBF24">[H] Hide/Unhide</HotkeyButton>
+        <HotkeyButton onPress={handleDelete} color="#EF4444">[D] Delete</HotkeyButton>
+        <HotkeyButton onPress={onClose} color="#9CA3AF">[Esc] Close</HotkeyButton>
       </box>
     </box>
   )

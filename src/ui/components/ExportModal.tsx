@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { useService } from "../context.js"
+import { HotkeyButton } from "./HotkeyButton.js"
 
 export interface ExportModalProps {
   title: string
@@ -55,11 +56,15 @@ export function ExportModal({
     }
   }
 
+  const handleClose = () => {
+    setSecret("")
+    setPassword("")
+    onClose()
+  }
+
   useKeyboard((key) => {
     if (key.name === "escape") {
-      setSecret("")
-      setPassword("")
-      onClose()
+      handleClose()
     } else if (step === "auth") {
       if (key.name === "return") {
         handleAuthenticate()
@@ -106,7 +111,7 @@ export function ExportModal({
           <text fg="#FBBF24">
             <b>{title} (FR-ACC-09)</b>
           </text>
-          <text fg="#EF4444">[Esc] Cancel</text>
+          <HotkeyButton onPress={handleClose} color="#EF4444">[Esc] Cancel</HotkeyButton>
         </box>
 
         {step === "auth" && (
@@ -148,8 +153,8 @@ export function ExportModal({
             ) : null}
 
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#9CA3AF">[Enter] Confirm Authentication</text>
-              <text fg="#60A5FA">[Esc] Close</text>
+              <HotkeyButton onPress={handleAuthenticate} color="#9CA3AF">[Enter] Confirm Authentication</HotkeyButton>
+              <HotkeyButton onPress={handleClose}>[Esc] Close</HotkeyButton>
             </box>
           </>
         )}
@@ -185,10 +190,8 @@ export function ExportModal({
             ) : null}
 
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#10B981">
-                <b>[Enter / Space] I Understand, Reveal Secret</b>
-              </text>
-              <text fg="#EF4444">[Esc] Cancel</text>
+              <HotkeyButton onPress={() => setStep("reveal")} color="#10B981"><b>[Enter / Space] I Understand, Reveal Secret</b></HotkeyButton>
+              <HotkeyButton onPress={handleClose} color="#EF4444">[Esc] Cancel</HotkeyButton>
             </box>
           </>
         )}
@@ -222,8 +225,11 @@ export function ExportModal({
             ) : null}
 
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#60A5FA">[Space] {revealed ? "Hide" : "Reveal"}  |  [C] Copy</text>
-              <text fg="#EF4444">[Esc] Exit & Clear</text>
+              <box style={{ flexDirection: "row", gap: 1 }}>
+                <HotkeyButton onPress={() => setRevealed((prev) => !prev)}>[Space] {revealed ? "Hide" : "Reveal"}</HotkeyButton>
+                <HotkeyButton onPress={handleCopy}>[C] Copy</HotkeyButton>
+              </box>
+              <HotkeyButton onPress={handleClose} color="#EF4444">[Esc] Exit & Clear</HotkeyButton>
             </box>
           </>
         )}

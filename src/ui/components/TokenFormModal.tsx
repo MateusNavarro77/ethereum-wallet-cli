@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
+import { HotkeyButton } from "./HotkeyButton.js"
 import type { TokenVerificationResult } from "../../core/interfaces.js"
 
 export interface TokenFormData {
@@ -149,8 +150,8 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
           {error && <text fg="#EF4444">✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text fg="#34D399">[Enter] Verify & Add</text>
-            <text fg="#9CA3AF">[Esc] Cancel</text>
+            <HotkeyButton onPress={handleVerify} color="#34D399">[Enter] Verify & Add</HotkeyButton>
+            <HotkeyButton onPress={onClose} color="#9CA3AF">[Esc] Cancel</HotkeyButton>
           </box>
         </box>
       )}
@@ -176,10 +177,8 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
           {error && <text fg="#EF4444" marginTop={1}>✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text fg="#34D399">
-              <b>[Enter] Confirm & Track Token</b>
-            </text>
-            <text fg="#9CA3AF">[Esc] Cancel</text>
+            <HotkeyButton onPress={handleConfirmAdd} color="#34D399"><b>[Enter] Confirm & Track Token</b></HotkeyButton>
+            <HotkeyButton onPress={onClose} color="#9CA3AF">[Esc] Cancel</HotkeyButton>
           </box>
         </box>
       )}
@@ -210,10 +209,8 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
           {error && <text fg="#EF4444" marginTop={1}>✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text fg="#F59E0B">
-              <b>[F] Force Add Anyway</b>
-            </text>
-            <text fg="#9CA3AF">[Esc] Cancel</text>
+            <HotkeyButton onPress={handleConfirmAdd} color="#F59E0B"><b>[F] Force Add Anyway</b></HotkeyButton>
+            <HotkeyButton onPress={onClose} color="#9CA3AF">[Esc] Cancel</HotkeyButton>
           </box>
         </box>
       )}

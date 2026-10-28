@@ -12,6 +12,9 @@ function createMockRpcService(overrides?: Partial<IRpcService>): IRpcService {
   let currentNetwork: NetworkConfig = SEPOLIA_NETWORK
   return {
     getBalance: async () => 0n,
+    getTokenBalance: async () => 0n,
+    getTokenMetadata: async () => ({ name: "Test Token", symbol: "TEST", decimals: 18, isErc20: true }),
+    hasBytecode: async () => true,
     getBlockNumber: async () => 1000n,
     verifyRpc: async (url: string, expected?: number) => {
       if (url.includes("offline")) {
@@ -27,6 +30,7 @@ function createMockRpcService(overrides?: Partial<IRpcService>): IRpcService {
       currentNetwork = net
     },
     formatEther: (wei: bigint) => "0",
+    formatUnits: (value: bigint, decimals: number) => "0",
     getNetwork: () => currentNetwork,
     ...overrides,
   }

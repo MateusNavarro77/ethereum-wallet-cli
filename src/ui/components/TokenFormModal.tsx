@@ -116,13 +116,13 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
       paddingBottom={1}
       width={72}
     >
-      <text bold color="#60A5FA">
-        ➕ Add ERC-20 Token (FR-BAL-03, FR-BAL-08)
+      <text fg="#60A5FA">
+        <b>➕ Add ERC-20 Token (FR-BAL-03, FR-BAL-08)</b>
       </text>
 
       {step === "input" && (
         <box flexDirection="column" marginTop={1}>
-          <text color="#9CA3AF">Enter the ERC-20 contract address on the active network:</text>
+          <text fg="#9CA3AF">Enter the ERC-20 contract address on the active network:</text>
           <box
             title=" Contract Address "
             style={{
@@ -145,41 +145,41 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
             />
           </box>
 
-          {isVerifying && <text color="#FBBF24">⟳ Querying contract bytecode and ERC-20 metadata...</text>}
-          {error && <text color="#EF4444">✖ {error}</text>}
+          {isVerifying && <text fg="#FBBF24">⟳ Querying contract bytecode and ERC-20 metadata...</text>}
+          {error && <text fg="#EF4444">✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text color="#34D399">[Enter] Verify & Add</text>
-            <text color="#9CA3AF">[Esc] Cancel</text>
+            <text fg="#34D399">[Enter] Verify & Add</text>
+            <text fg="#9CA3AF">[Esc] Cancel</text>
           </box>
         </box>
       )}
 
       {step === "confirm" && resolvedData && (
         <box flexDirection="column" marginTop={1}>
-          <text color="#34D399" bold>
-            ✔ Valid ERC-20 Contract Verified!
+          <text fg="#34D399">
+            <b>✔ Valid ERC-20 Contract Verified!</b>
           </text>
           <box flexDirection="column" marginTop={1} paddingLeft={1}>
-            <text color="#F3F4F6">
-              Name: <span style={{ bold: true, fg: "#60A5FA" }}>{resolvedData.name}</span>
+            <text fg="#F3F4F6">
+              Name: <span fg="#60A5FA"><b>{resolvedData.name}</b></span>
             </text>
-            <text color="#F3F4F6">
-              Symbol: <span style={{ bold: true, fg: "#FBBF24" }}>{resolvedData.symbol}</span>
+            <text fg="#F3F4F6">
+              Symbol: <span fg="#FBBF24"><b>{resolvedData.symbol}</b></span>
             </text>
-            <text color="#F3F4F6">
-              Decimals: <span style={{ fg: "#9CA3AF" }}>{resolvedData.decimals}</span>
+            <text fg="#F3F4F6">
+              Decimals: <span fg="#9CA3AF">{resolvedData.decimals}</span>
             </text>
-            <text color="#9CA3AF">Address: {resolvedData.address}</text>
+            <text fg="#9CA3AF">Address: {resolvedData.address}</text>
           </box>
 
-          {error && <text color="#EF4444" marginTop={1}>✖ {error}</text>}
+          {error && <text fg="#EF4444" marginTop={1}>✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text color="#34D399" bold>
-              [Enter] Confirm & Track Token
+            <text fg="#34D399">
+              <b>[Enter] Confirm & Track Token</b>
             </text>
-            <text color="#9CA3AF">[Esc] Cancel</text>
+            <text fg="#9CA3AF">[Esc] Cancel</text>
           </box>
         </box>
       )}
@@ -187,33 +187,33 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
       {step === "warning" && resolvedData && (
         <box flexDirection="column" marginTop={1}>
           <box borderStyle="single" borderColor="#F59E0B" padding={1} flexDirection="column">
-            <text color="#F59E0B" bold>
-              ⚠ Warning: Contract Not Verified as Standard ERC-20
+            <text fg="#F59E0B">
+              <b>⚠ Warning: Contract Not Verified as Standard ERC-20</b>
             </text>
-            <text color="#FCD34D" marginTop={1}>
+            <text fg="#FCD34D" marginTop={1}>
               {warning}
             </text>
-            <text color="#9CA3AF" marginTop={1}>
+            <text fg="#9CA3AF" marginTop={1}>
               Interacting with unverified contracts may display incorrect balances or pose security risks.
             </text>
           </box>
 
           <box marginTop={1} paddingLeft={1} flexDirection="column">
-            <text color="#F3F4F6">
-              Target Address: <span style={{ fg: "#9CA3AF" }}>{resolvedData.address}</span>
+            <text fg="#F3F4F6">
+              Target Address: <span fg="#9CA3AF">{resolvedData.address}</span>
             </text>
-            <text color="#F3F4F6">
-              Assumed Symbol: <span style={{ fg: "#FBBF24" }}>{resolvedData.symbol}</span> (Decimals: {resolvedData.decimals})
+            <text fg="#F3F4F6">
+              Assumed Symbol: <span fg="#FBBF24">{resolvedData.symbol}</span> (Decimals: {resolvedData.decimals})
             </text>
           </box>
 
-          {error && <text color="#EF4444" marginTop={1}>✖ {error}</text>}
+          {error && <text fg="#EF4444" marginTop={1}>✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text color="#F59E0B" bold>
-              [F] Force Add Anyway
+            <text fg="#F59E0B">
+              <b>[F] Force Add Anyway</b>
             </text>
-            <text color="#9CA3AF">[Esc] Cancel</text>
+            <text fg="#9CA3AF">[Esc] Cancel</text>
           </box>
         </box>
       )}

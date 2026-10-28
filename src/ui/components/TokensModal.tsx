@@ -161,45 +161,45 @@ export function TokensModal({
       width={78}
     >
       <box flexDirection="row" justifyContent="space-between" marginBottom={1}>
-        <text bold color="#C084FC">
-          🪙 Tracked ERC-20 Tokens (Chain {chainId})
+        <text fg="#C084FC">
+          <b>🪙 Tracked ERC-20 Tokens (Chain {chainId})</b>
         </text>
-        <text color="#9CA3AF">
+        <text fg="#9CA3AF">
           {tokens.length} {tokens.length === 1 ? "token" : "tokens"}
         </text>
       </box>
 
       {statusMessage && (
-        <text color="#34D399" marginBottom={1}>
+        <text fg="#34D399" marginBottom={1}>
           {statusMessage}
         </text>
       )}
       {errorMessage && (
-        <text color="#EF4444" marginBottom={1}>
+        <text fg="#EF4444" marginBottom={1}>
           ✖ {errorMessage}
         </text>
       )}
 
       {mode === "confirm-delete" && selectedToken && (
         <box borderStyle="single" borderColor="#EF4444" padding={1} flexDirection="column" marginBottom={1}>
-          <text color="#EF4444" bold>
-            Delete Token {selectedToken.symbol}?
+          <text fg="#EF4444">
+            <b>Delete Token {selectedToken.symbol}?</b>
           </text>
-          <text color="#F3F4F6">
+          <text fg="#F3F4F6">
             Are you sure you want to remove {selectedToken.name} ({selectedToken.address})?
           </text>
           <box marginTop={1} flexDirection="row" gap={2}>
-            <text color="#EF4444" bold>
-              [Enter / Y] Confirm Delete
+            <text fg="#EF4444">
+              <b>[Enter / Y] Confirm Delete</b>
             </text>
-            <text color="#9CA3AF">[Esc / N] Cancel</text>
+            <text fg="#9CA3AF">[Esc / N] Cancel</text>
           </box>
         </box>
       )}
 
       <box flexDirection="column">
         {visibleTokens.length === 0 ? (
-          <text color="#6B7280">No tokens tracked on this chain yet. Press [A] to add one.</text>
+          <text fg="#6B7280">No tokens tracked on this chain yet. Press [A] to add one.</text>
         ) : (
           visibleTokens.map((token, index) => {
             const actualIndex = effectiveOffset + index
@@ -215,25 +215,25 @@ export function TokensModal({
                 paddingRight={1}
               >
                 <box flexDirection="row" gap={1}>
-                  <text color={isSelected ? "#38BDF8" : "#6B7280"}>
+                  <text fg={isSelected ? "#38BDF8" : "#6B7280"}>
                     {isSelected ? ">" : " "}
                   </text>
-                  <text bold color={token.hidden ? "#6B7280" : isSelected ? "#F3F4F6" : "#E5E7EB"}>
-                    {token.symbol}
+                  <text fg={token.hidden ? "#6B7280" : isSelected ? "#F3F4F6" : "#E5E7EB"}>
+                    <b>{token.symbol}</b>
                   </text>
-                  <text color="#9CA3AF">
+                  <text fg="#9CA3AF">
                     ({token.name.length > 16 ? token.name.slice(0, 16) + "..." : token.name})
                   </text>
-                  <text color={token.isPreset ? "#C084FC" : "#60A5FA"}>
+                  <text fg={token.isPreset ? "#C084FC" : "#60A5FA"}>
                     {token.isPreset ? "[Preset]" : "[Custom]"}
                   </text>
                 </box>
 
                 <box flexDirection="row" gap={1}>
-                  <text color={token.hidden ? "#EF4444" : "#34D399"}>
+                  <text fg={token.hidden ? "#EF4444" : "#34D399"}>
                     {token.hidden ? "[Hidden]" : "[Active]"}
                   </text>
-                  <text color="#6B7280">
+                  <text fg="#6B7280">
                     {token.address.slice(0, 6)}...{token.address.slice(-4)}
                   </text>
                 </box>
@@ -245,17 +245,17 @@ export function TokensModal({
 
       {tokens.length > PAGE_SIZE && (
         <box marginTop={1} justifyContent="center">
-          <text color="#6B7280">
+          <text fg="#6B7280">
             ▲ ▼ Showing {effectiveOffset + 1}-{Math.min(effectiveOffset + PAGE_SIZE, tokens.length)} of {tokens.length}
           </text>
         </box>
       )}
 
       <box marginTop={1} paddingTop={1} borderStyle="single" borderColor="#374151" flexDirection="row" gap={2}>
-        <text color="#34D399">[A] Add Token</text>
-        <text color="#FBBF24">[H] Hide/Unhide</text>
-        <text color="#EF4444">[D] Delete</text>
-        <text color="#9CA3AF">[Esc] Close</text>
+        <text fg="#34D399">[A] Add Token</text>
+        <text fg="#FBBF24">[H] Hide/Unhide</text>
+        <text fg="#EF4444">[D] Delete</text>
+        <text fg="#9CA3AF">[Esc] Close</text>
       </box>
     </box>
   )

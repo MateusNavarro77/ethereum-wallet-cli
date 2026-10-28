@@ -312,7 +312,7 @@ export function DashboardScreen({
 
             {/* Total Fiat Portfolio Value (FR-BAL-05) */}
             {totalFiat ? (
-              <box style={{ flexDirection: "row", justifyContent: "space-between", borderTop: true, borderColor: "#374151", paddingTop: 1 }}>
+              <box style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 1 }}>
                 <text fg="#9CA3AF">Est. Total Fiat Value:</text>
                 <text fg="#34D399"><b>{totalFiat} USD</b></text>
               </box>

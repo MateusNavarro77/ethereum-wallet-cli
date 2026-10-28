@@ -8,7 +8,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "test": "bun test",
-    "typecheck": "bun x tsc --noEmit"
+    "typecheck": "bun x --bun tsc --noEmit"
   },
   "dependencies": {
     "@opentui/core": "^0.7.0",

@@ -2,10 +2,15 @@ import type {
   Account,
   AppConfig,
   EncryptedVault,
+  GasEstimateResult,
+  GasFeePresets,
   HdAccount,
   ImportedAccount,
   NetworkConfig,
+  PrepareTransactionParams,
+  SendTransactionParams,
   TokenConfig,
+  TransactionReceiptSummary,
   WalletData,
   WatchOnlyAccount,
   Web3KeystoreV3,
@@ -103,6 +108,7 @@ export interface IRpcService {
   formatEther(wei: bigint): string
   formatUnits(value: bigint, decimals: number): string
   getNetwork(chainId?: number): NetworkConfig
+  getPublicClient?(): any
 }
 
 export interface TokenVerificationResult {
@@ -163,5 +169,12 @@ export interface IThemeService {
   getActiveThemeId(): string
   setTheme(id: string): Promise<Theme>
   reloadThemes(): Promise<void>
+}
+
+export interface ITransactionService {
+  estimateGas(params: PrepareTransactionParams): Promise<GasEstimateResult>
+  getFeePresets(): Promise<GasFeePresets>
+  sendTransaction(params: SendTransactionParams): Promise<`0x${string}`>
+  waitForReceipt(hash: `0x${string}`): Promise<TransactionReceiptSummary>
 }
 

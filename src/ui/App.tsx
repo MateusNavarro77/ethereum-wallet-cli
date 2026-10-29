@@ -17,6 +17,7 @@ export function App() {
     activeAccount,
     loadingOverlay,
     errorMessage,
+    masterPassword,
     handleStartCreate,
     handleCreatePasswordComplete,
     handleCreateMnemonicComplete,
@@ -170,6 +171,7 @@ export function App() {
         onRemove={handleRemoveAccount}
         onExportPrivateKey={handleExportPrivateKey}
         onExportMnemonic={handleExportMnemonic}
+        masterPassword={masterPassword}
       />
     )
   }

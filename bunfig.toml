@@ -1,0 +1,13 @@
+[format]
+# Indentation
+indent_style = "space"   # "space" or "tab"
+indent_width = 2
+
+# Line length
+line_width = 80
+
+# Syntax preferences
+semicolons = "never"    # "always" or "never"
+quotes = "single"        # "single" or "double"
+trailing_commas = "all"  # "all", "none", or "es5"
+arrow_parens = "always"  # "always" or "avoid"

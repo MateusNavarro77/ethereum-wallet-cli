@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { useTheme } from "../context.js"
 
 interface FooterProps {
   children?: ReactNode
@@ -6,12 +7,15 @@ interface FooterProps {
 }
 
 export function Footer({ children, notification }: FooterProps) {
+  const { tokens } = useTheme()
+
   return (
     <box
       style={{
         width: "100%",
         border: true,
-        borderColor: "#4B5563",
+        borderColor: tokens.border,
+        backgroundColor: tokens.surface,
         paddingX: 1,
         flexDirection: "row",
         justifyContent: "space-between",
@@ -23,7 +27,7 @@ export function Footer({ children, notification }: FooterProps) {
 
       {notification ? (
         <box>
-          <text fg="#34D399">
+          <text fg={tokens.success}>
             <b>{notification}</b>
           </text>
         </box>
@@ -31,4 +35,3 @@ export function Footer({ children, notification }: FooterProps) {
     </box>
   )
 }
-

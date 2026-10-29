@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
-import { useService } from "../context.js"
+import { useService, useTheme } from "../context.js"
 import { HotkeyButton } from "./HotkeyButton.js"
 
 export interface ExportModalProps {
@@ -19,6 +19,7 @@ export function ExportModal({
   onClose,
 }: ExportModalProps) {
   const clipboardService = useService("clipboardService")
+  const { tokens } = useTheme()
 
   const [step, setStep] = useState<"auth" | "warning" | "reveal">("auth")
   const [password, setPassword] = useState("")
@@ -94,7 +95,7 @@ export function ExportModal({
         height: "100%",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#000000",
+        backgroundColor: tokens.overlay,
         zIndex: 100,
       }}
     >
@@ -102,22 +103,23 @@ export function ExportModal({
         style={{
           width: 72,
           border: true,
-          borderColor: step === "warning" ? "#EF4444" : "#F59E0B",
+          borderColor: step === "warning" ? tokens.error : tokens.warning,
+          backgroundColor: tokens.card,
           padding: 1,
           flexDirection: "column",
         }}
       >
         <box style={{ marginBottom: 1, flexDirection: "row", justifyContent: "space-between" }}>
-          <text fg="#FBBF24">
+          <text fg={tokens.warning}>
             <b>{title} (FR-ACC-09)</b>
           </text>
-          <HotkeyButton onPress={handleClose} color="#EF4444">[Esc] Cancel</HotkeyButton>
+          <HotkeyButton onPress={handleClose} color={tokens.error}>[Esc] Cancel</HotkeyButton>
         </box>
 
         {step === "auth" && (
           <>
             <box style={{ marginBottom: 1 }}>
-              <text fg="#D1D5DB">
+              <text fg={tokens.textMuted}>
                 Re-enter your master wallet password to confirm authentication:
               </text>
             </box>
@@ -126,7 +128,7 @@ export function ExportModal({
               title=" Master Password "
               style={{
                 border: true,
-                borderColor: "#60A5FA",
+                borderColor: tokens.borderActive,
                 height: 3,
                 marginBottom: 1,
               }}
@@ -142,19 +144,19 @@ export function ExportModal({
 
             {isLoading ? (
               <box style={{ marginBottom: 1 }}>
-                <text fg="#F59E0B">Verifying credentials and decrypting...</text>
+                <text fg={tokens.warning}>Verifying credentials and decrypting...</text>
               </box>
             ) : null}
 
             {errorMessage ? (
               <box style={{ marginBottom: 1 }}>
-                <text fg="#EF4444">⚠ {errorMessage}</text>
+                <text fg={tokens.error}>⚠ {errorMessage}</text>
               </box>
             ) : null}
 
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <HotkeyButton onPress={handleAuthenticate} color="#9CA3AF">[Enter] Confirm Authentication</HotkeyButton>
-              <HotkeyButton onPress={handleClose}>[Esc] Close</HotkeyButton>
+              <HotkeyButton onPress={handleAuthenticate} color={tokens.textMuted}>[Enter] Confirm Authentication</HotkeyButton>
+              <HotkeyButton onPress={handleClose} color={tokens.textMuted}>[Esc] Close</HotkeyButton>
             </box>
           </>
         )}
@@ -164,34 +166,34 @@ export function ExportModal({
             <box
               style={{
                 border: true,
-                borderColor: "#EF4444",
-                backgroundColor: "#1F1D1D",
+                borderColor: tokens.error,
+                backgroundColor: tokens.surface,
                 padding: 1,
                 marginBottom: 1,
                 flexDirection: "column",
               }}
             >
-              <text fg="#F87171">
+              <text fg={tokens.error}>
                 <b>CRITICAL SECURITY WARNING:</b>
               </text>
-              <text fg="#FFFFFF">
+              <text fg={tokens.text}>
                 You are about to view your raw {sensitiveType === "mnemonic" ? "BIP-39 mnemonic recovery phrase" : "private key"}.
               </text>
-              <text fg="#D1D5DB">
+              <text fg={tokens.textMuted}>
                 Anyone who views or obtains this secret has FULL and UNREVOCABLE access to all your funds! Never share it with anyone or paste it into untrusted websites.
               </text>
             </box>
 
             {address ? (
               <box style={{ marginBottom: 1 }}>
-                <text fg="#9CA3AF">Account Address: </text>
-                <text fg="#60A5FA">{address}</text>
+                <text fg={tokens.textMuted}>Account Address: </text>
+                <text fg={tokens.primary}>{address}</text>
               </box>
             ) : null}
 
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <HotkeyButton onPress={() => setStep("reveal")} color="#10B981"><b>[Enter / Space] I Understand, Reveal Secret</b></HotkeyButton>
-              <HotkeyButton onPress={handleClose} color="#EF4444">[Esc] Cancel</HotkeyButton>
+              <HotkeyButton onPress={() => setStep("reveal")} color={tokens.success}><b>[Enter / Space] I Understand, Reveal Secret</b></HotkeyButton>
+              <HotkeyButton onPress={handleClose} color={tokens.error}>[Esc] Cancel</HotkeyButton>
             </box>
           </>
         )}
@@ -199,7 +201,7 @@ export function ExportModal({
         {step === "reveal" && (
           <>
             <box style={{ marginBottom: 1 }}>
-              <text fg="#9CA3AF">
+              <text fg={tokens.textMuted}>
                 {sensitiveType === "mnemonic" ? "Recovery Phrase:" : "Raw Private Key:"}
               </text>
             </box>
@@ -207,29 +209,30 @@ export function ExportModal({
             <box
               style={{
                 border: true,
-                borderColor: revealed ? "#10B981" : "#4B5563",
+                borderColor: revealed ? tokens.success : tokens.border,
+                backgroundColor: tokens.surface,
                 padding: 1,
                 marginBottom: 1,
                 flexDirection: "column",
               }}
             >
-              <text fg={revealed ? "#FFFFFF" : "#9CA3AF"}>
+              <text fg={revealed ? tokens.text : tokens.textMuted}>
                 <b>{revealed ? secret : maskedText}</b>
               </text>
             </box>
 
             {copied ? (
               <box style={{ marginBottom: 1 }}>
-                <text fg="#10B981">✔ Copied to system clipboard!</text>
+                <text fg={tokens.success}>✔ Copied to system clipboard!</text>
               </box>
             ) : null}
 
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <box style={{ flexDirection: "row", gap: 1 }}>
-                <HotkeyButton onPress={() => setRevealed((prev) => !prev)}>[Space] {revealed ? "Hide" : "Reveal"}</HotkeyButton>
-                <HotkeyButton onPress={handleCopy}>[C] Copy</HotkeyButton>
+                <HotkeyButton onPress={() => setRevealed((prev) => !prev)} color={tokens.secondary}>[Space] {revealed ? "Hide" : "Reveal"}</HotkeyButton>
+                <HotkeyButton onPress={handleCopy} color={tokens.primary}>[C] Copy</HotkeyButton>
               </box>
-              <HotkeyButton onPress={handleClose} color="#EF4444">[Esc] Exit & Clear</HotkeyButton>
+              <HotkeyButton onPress={handleClose} color={tokens.error}>[Esc] Exit & Clear</HotkeyButton>
             </box>
           </>
         )}

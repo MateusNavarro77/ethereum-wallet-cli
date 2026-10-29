@@ -3,6 +3,7 @@ import { useKeyboard } from "@opentui/react"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { useTheme } from "../context.js"
 import type {
   Account,
   HdAccount,
@@ -58,6 +59,7 @@ export function AccountsModal({
   onExportMnemonic,
   onClose,
 }: AccountsModalProps) {
+  const { tokens } = useTheme()
   const PAGE_SIZE = 8
   const [mode, setMode] = useState<ModalMode>("list")
   const accounts = wallet.accounts
@@ -374,7 +376,7 @@ export function AccountsModal({
         height: "100%",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#000000",
+        backgroundColor: tokens.overlay,
         zIndex: 50,
       }}
     >
@@ -399,24 +401,25 @@ export function AccountsModal({
         style={{
           width: 78,
           border: true,
-          borderColor: "#3B82F6",
+          borderColor: tokens.borderActive,
+          backgroundColor: tokens.card,
           padding: 1,
           flexDirection: "column",
         }}
       >
         {/* Header */}
         <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
-          <text fg="#60A5FA">
+          <text fg={tokens.primary}>
             <b>Account Manager & Portfolio</b>
           </text>
           <box style={{ flexDirection: "row", gap: 1 }}>
-            <text fg="#9CA3AF">
+            <text fg={tokens.textMuted}>
               {accounts.length} Account{accounts.length > 1 ? "s" : ""}
               {accounts.length > PAGE_SIZE
                 ? ` (${effectiveOffset + 1}-${Math.min(accounts.length, effectiveOffset + PAGE_SIZE)} of ${accounts.length})`
                 : ""}
             </text>
-            <HotkeyButton onPress={onClose}>[Esc] Close</HotkeyButton>
+            <HotkeyButton onPress={onClose} color={tokens.textMuted}>[Esc] Close</HotkeyButton>
           </box>
         </box>
 
@@ -431,7 +434,8 @@ export function AccountsModal({
               }
               style={{
                 border: true,
-                borderColor: "#4B5563",
+                borderColor: tokens.border,
+                backgroundColor: tokens.surface,
                 paddingX: 1,
                 paddingY: 0,
                 flexDirection: "column",
@@ -456,27 +460,27 @@ export function AccountsModal({
                     style={{
                       flexDirection: "row",
                       justifyContent: "space-between",
-                      backgroundColor: isSelected ? "#1F2937" : "transparent",
+                      backgroundColor: isSelected ? tokens.selectionBg : "transparent",
                     }}
                   >
                     <box style={{ flexDirection: "row" }}>
-                      <text fg={isSelected ? "#60A5FA" : "#9CA3AF"}>
+                      <text fg={isSelected ? tokens.selectionFg : tokens.textMuted}>
                         {isSelected ? "▶ " : "  "}
                       </text>
-                      <text fg={isSelected ? "#FBBF24" : "#9CA3AF"}>
+                      <text fg={isSelected ? tokens.selectionFg : tokens.warning}>
                         <b>{badge} </b>
                       </text>
-                      <text fg={acc.hidden ? "#6B7280" : isSelected ? "#FFFFFF" : "#E5E7EB"}>
+                      <text fg={acc.hidden ? tokens.textSubtle : isSelected ? tokens.selectionFg : tokens.text}>
                         <b>{acc.label} </b>
                       </text>
-                      <text fg={isSelected ? "#93C5FD" : "#6B7280"}>
+                      <text fg={isSelected ? tokens.selectionFg : tokens.textSubtle}>
                         ({acc.address.slice(0, 6)}...{acc.address.slice(-4)})
                       </text>
                     </box>
 
                     <box style={{ flexDirection: "row", gap: 1 }}>
-                      {acc.hidden ? <text fg="#EF4444">[Hidden]</text> : null}
-                      {isActive ? <text fg="#10B981"><b>[Active]</b></text> : null}
+                      {acc.hidden ? <text fg={tokens.error}>[Hidden]</text> : null}
+                      {isActive ? <text fg={isSelected ? tokens.selectionFg : tokens.success}><b>[Active]</b></text> : null}
                     </box>
                   </box>
                 )
@@ -485,29 +489,29 @@ export function AccountsModal({
 
             {statusMessage ? (
               <box style={{ marginBottom: 1 }}>
-                <text fg="#10B981">✔ {statusMessage}</text>
+                <text fg={tokens.success}>✔ {statusMessage}</text>
               </box>
             ) : null}
 
             {errorMessage ? (
               <box style={{ marginBottom: 1 }}>
-                <text fg="#EF4444">⚠ {errorMessage}</text>
+                <text fg={tokens.error}>⚠ {errorMessage}</text>
               </box>
             ) : null}
 
             {/* Hotkeys Bar */}
-            <box style={{ flexDirection: "column", border: true, borderColor: "#374151", padding: 1 }}>
+            <box style={{ flexDirection: "column", border: true, borderColor: tokens.borderSubtle, padding: 1, backgroundColor: tokens.surface }}>
               <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
-                <HotkeyButton onPress={() => { if (currentAccount && !currentAccount.hidden) { onSelectAccount(currentAccount.address); onClose() } }} color="#10B981">[Enter] Switch Active</HotkeyButton>
-                <HotkeyButton onPress={handleNextDerived}>[N] Add Next Derived</HotkeyButton>
-                <HotkeyButton onPress={handleStartRename}>[R] Rename</HotkeyButton>
-                <HotkeyButton onPress={() => { setErrorMessage(""); setMode("import-menu") }}>[I] Import Account</HotkeyButton>
+                <HotkeyButton onPress={() => { if (currentAccount && !currentAccount.hidden) { onSelectAccount(currentAccount.address); onClose() } }} color={tokens.success}>[Enter] Switch Active</HotkeyButton>
+                <HotkeyButton onPress={handleNextDerived} color={tokens.secondary}>[N] Add Next Derived</HotkeyButton>
+                <HotkeyButton onPress={handleStartRename} color={tokens.primary}>[R] Rename</HotkeyButton>
+                <HotkeyButton onPress={() => { setErrorMessage(""); setMode("import-menu") }} color={tokens.accent}>[I] Import Account</HotkeyButton>
               </box>
               <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <HotkeyButton onPress={handleToggleHide} color="#F59E0B">[H] Hide/Unhide</HotkeyButton>
-                <HotkeyButton onPress={handleStartRemove} color="#EF4444">[D] Remove Account</HotkeyButton>
-                <HotkeyButton onPress={() => { if (!currentAccount) return; if (currentAccount.type === "watch-only") { setErrorMessage("Cannot export private key: this is a watch-only account"); return } setExportTarget({ type: "private-key", title: `Export Private Key for ${currentAccount.label}`, address: currentAccount.address }); setMode("exporting") }} color="#FBBF24">[E] Export Key</HotkeyButton>
-                <HotkeyButton onPress={() => { if (!wallet.mnemonic) { setErrorMessage("This wallet does not have a mnemonic seed phrase"); return } setExportTarget({ type: "mnemonic", title: "Export Master Recovery Phrase" }); setMode("exporting") }} color="#FBBF24">[M] Export Seed</HotkeyButton>
+                <HotkeyButton onPress={handleToggleHide} color={tokens.warning}>[H] Hide/Unhide</HotkeyButton>
+                <HotkeyButton onPress={handleStartRemove} color={tokens.error}>[D] Remove Account</HotkeyButton>
+                <HotkeyButton onPress={() => { if (!currentAccount) return; if (currentAccount.type === "watch-only") { setErrorMessage("Cannot export private key: this is a watch-only account"); return } setExportTarget({ type: "private-key", title: `Export Private Key for ${currentAccount.label}`, address: currentAccount.address }); setMode("exporting") }} color={tokens.warning}>[E] Export Key</HotkeyButton>
+                <HotkeyButton onPress={() => { if (!wallet.mnemonic) { setErrorMessage("This wallet does not have a mnemonic seed phrase"); return } setExportTarget({ type: "mnemonic", title: "Export Master Recovery Phrase" }); setMode("exporting") }} color={tokens.warning}>[M] Export Seed</HotkeyButton>
               </box>
             </box>
           </>
@@ -517,9 +521,9 @@ export function AccountsModal({
         {mode === "rename" && currentAccount && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg="#FBBF24">Rename Account: {currentAccount.address}</text>
+              <text fg={tokens.warning}>Rename Account: {currentAccount.address}</text>
             </box>
-            <box title=" New Account Label " style={{ border: true, borderColor: "#60A5FA", height: 3, marginBottom: 1 }}>
+            <box title=" New Account Label " style={{ border: true, borderColor: tokens.borderActive, height: 3, marginBottom: 1 }}>
               <input
                 value={renameInput}
                 onInput={setRenameInput}
@@ -527,10 +531,10 @@ export function AccountsModal({
                 focused={true}
               />
             </box>
-            {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
+            {errorMessage ? <text fg={tokens.error}>⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <HotkeyButton onPress={handleSaveRename} color="#9CA3AF">[Enter] Save Label</HotkeyButton>
-              <HotkeyButton onPress={() => setMode("list")}>[Esc] Cancel</HotkeyButton>
+              <HotkeyButton onPress={handleSaveRename} color={tokens.success}>[Enter] Save Label</HotkeyButton>
+              <HotkeyButton onPress={() => setMode("list")} color={tokens.textMuted}>[Esc] Cancel</HotkeyButton>
             </box>
           </box>
         )}
@@ -539,25 +543,25 @@ export function AccountsModal({
         {mode === "import-menu" && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg="#60A5FA"><b>Select Import Method:</b></text>
+              <text fg={tokens.primary}><b>Select Import Method:</b></text>
             </box>
-            <box style={{ border: true, borderColor: "#4B5563", padding: 1, flexDirection: "column", marginBottom: 1 }}>
+            <box style={{ border: true, borderColor: tokens.border, backgroundColor: tokens.surface, padding: 1, flexDirection: "column", marginBottom: 1 }}>
               <box style={{ marginBottom: 1 }}>
-                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-privkey") }} color="#34D399"><b>[1] Import Raw Private Key</b></HotkeyButton>
-                <text fg="#9CA3AF"> - Enter 32-byte hex private key (FR-ACC-04)</text>
+                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-privkey") }} color={tokens.success}><b>[1] Import Raw Private Key</b></HotkeyButton>
+                <text fg={tokens.textMuted}> - Enter 32-byte hex private key (FR-ACC-04)</text>
               </box>
               <box style={{ marginBottom: 1 }}>
-                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setInputField3(""); setMode("import-keystore") }}><b>[2] Import Web3 JSON Keystore File</b></HotkeyButton>
-                <text fg="#9CA3AF"> - File path or JSON string with password (FR-ACC-05)</text>
+                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setInputField3(""); setMode("import-keystore") }} color={tokens.secondary}><b>[2] Import Web3 JSON Keystore File</b></HotkeyButton>
+                <text fg={tokens.textMuted}> - File path or JSON string with password (FR-ACC-05)</text>
               </box>
               <box>
-                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-watchonly") }} color="#FBBF24"><b>[3] Add Watch-Only Account</b></HotkeyButton>
-                <text fg="#9CA3AF"> - Address only, tracking without signing (FR-ACC-08)</text>
+                <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-watchonly") }} color={tokens.warning}><b>[3] Add Watch-Only Account</b></HotkeyButton>
+                <text fg={tokens.textMuted}> - Address only, tracking without signing (FR-ACC-08)</text>
               </box>
             </box>
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#9CA3AF">Press [1], [2], or [3]</text>
-              <HotkeyButton onPress={() => setMode("list")}>[Esc] Back to Accounts</HotkeyButton>
+              <text fg={tokens.textMuted}>Press [1], [2], or [3]</text>
+              <HotkeyButton onPress={() => setMode("list")} color={tokens.textMuted}>[Esc] Back to Accounts</HotkeyButton>
             </box>
           </box>
         )}
@@ -566,9 +570,9 @@ export function AccountsModal({
         {mode === "import-privkey" && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg="#34D399"><b>Import Raw Private Key (FR-ACC-04)</b></text>
+              <text fg={tokens.success}><b>Import Raw Private Key (FR-ACC-04)</b></text>
             </box>
-            <box onMouseDown={() => setFocusedInput(0)} title=" 32-Byte Hex Private Key (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(0)} title=" 32-Byte Hex Private Key (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
                 placeholder="0x..."
                 value={inputField1}
@@ -576,7 +580,7 @@ export function AccountsModal({
                 focused={focusedInput === 0}
               />
             </box>
-            <box onMouseDown={() => setFocusedInput(1)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(1)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
                 placeholder="e.g. My Imported Dev Key"
                 value={inputField2}
@@ -584,9 +588,9 @@ export function AccountsModal({
                 focused={focusedInput === 1}
               />
             </box>
-            {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
+            {errorMessage ? <text fg={tokens.error}>⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 2)} color="#9CA3AF">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSavePrivateKey} color="#9CA3AF">[Enter] Import Key</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")}>[Esc] Back</HotkeyButton></box>
+              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 2)} color={tokens.secondary}>[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSavePrivateKey} color={tokens.success}>[Enter] Import Key</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")} color={tokens.textMuted}>[Esc] Back</HotkeyButton></box>
             </box>
           </box>
         )}
@@ -595,9 +599,9 @@ export function AccountsModal({
         {mode === "import-keystore" && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg="#60A5FA"><b>Import Web3 Keystore File (FR-ACC-05)</b></text>
+              <text fg={tokens.primary}><b>Import Web3 Keystore File (FR-ACC-05)</b></text>
             </box>
-            <box onMouseDown={() => setFocusedInput(0)} title=" File Path (e.g. ~/.ethereum/keystore/... or paste JSON) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(0)} title=" File Path (e.g. ~/.ethereum/keystore/... or paste JSON) " style={{ border: true, borderColor: focusedInput === 0 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
                 placeholder="/path/to/keystore.json"
                 value={inputField1}
@@ -605,7 +609,7 @@ export function AccountsModal({
                 focused={focusedInput === 0}
               />
             </box>
-            <box onMouseDown={() => setFocusedInput(1)} title=" Keystore Decryption Password " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(1)} title=" Keystore Decryption Password " style={{ border: true, borderColor: focusedInput === 1 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
                 placeholder="Keystore password..."
                 value={inputField2}
@@ -613,7 +617,7 @@ export function AccountsModal({
                 focused={focusedInput === 1}
               />
             </box>
-            <box onMouseDown={() => setFocusedInput(2)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 2 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(2)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 2 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
                 placeholder="e.g. Geth Imported Account"
                 value={inputField3}
@@ -621,9 +625,9 @@ export function AccountsModal({
                 focused={focusedInput === 2}
               />
             </box>
-            {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
+            {errorMessage ? <text fg={tokens.error}>⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 3)} color="#9CA3AF">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSaveKeystore} color="#9CA3AF">[Enter] Decrypt & Import</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")}>[Esc] Back</HotkeyButton></box>
+              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 3)} color={tokens.secondary}>[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSaveKeystore} color={tokens.success}>[Enter] Decrypt & Import</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")} color={tokens.textMuted}>[Esc] Back</HotkeyButton></box>
             </box>
           </box>
         )}
@@ -632,9 +636,9 @@ export function AccountsModal({
         {mode === "import-watchonly" && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg="#FBBF24"><b>Add Watch-Only Account (FR-ACC-08)</b></text>
+              <text fg={tokens.warning}><b>Add Watch-Only Account (FR-ACC-08)</b></text>
             </box>
-            <box onMouseDown={() => setFocusedInput(0)} title=" Ethereum Address (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(0)} title=" Ethereum Address (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
                 placeholder="0x..."
                 value={inputField1}
@@ -642,7 +646,7 @@ export function AccountsModal({
                 focused={focusedInput === 0}
               />
             </box>
-            <box onMouseDown={() => setFocusedInput(1)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563", height: 3, marginBottom: 1 }}>
+            <box onMouseDown={() => setFocusedInput(1)} title=" Account Label " style={{ border: true, borderColor: focusedInput === 1 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
                 placeholder="e.g. Treasury Watcher"
                 value={inputField2}
@@ -650,9 +654,9 @@ export function AccountsModal({
                 focused={focusedInput === 1}
               />
             </box>
-            {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
+            {errorMessage ? <text fg={tokens.error}>⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 2)} color="#9CA3AF">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSaveWatchOnly} color="#9CA3AF">[Enter] Add Watch-Only</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")}>[Esc] Back</HotkeyButton></box>
+              <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 2)} color={tokens.secondary}>[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleSaveWatchOnly} color={tokens.success}>[Enter] Add Watch-Only</HotkeyButton><HotkeyButton onPress={() => setMode("import-menu")} color={tokens.textMuted}>[Esc] Back</HotkeyButton></box>
             </box>
           </box>
         )}
@@ -660,16 +664,16 @@ export function AccountsModal({
         {/* Confirm Remove */}
         {mode === "confirm-remove" && currentAccount && (
           <box style={{ flexDirection: "column", padding: 1 }}>
-            <box style={{ border: true, borderColor: "#EF4444", padding: 1, marginBottom: 1, flexDirection: "column" }}>
-              <text fg="#EF4444"><b>REMOVE ACCOUNT CONFIRMATION</b></text>
-              <text fg="#FFFFFF">
+            <box style={{ border: true, borderColor: tokens.error, backgroundColor: tokens.surface, padding: 1, marginBottom: 1, flexDirection: "column" }}>
+              <text fg={tokens.error}><b>REMOVE ACCOUNT CONFIRMATION</b></text>
+              <text fg={tokens.text}>
                 You are about to remove "{currentAccount.label}" ({currentAccount.address}).
               </text>
-              <text fg="#D1D5DB">
+              <text fg={tokens.textMuted}>
                 If this is an imported key and you do not have a backup, the funds will be permanently lost!
               </text>
             </box>
-            <box title=" Type 'REMOVE' to confirm " style={{ border: true, borderColor: "#EF4444", height: 3, marginBottom: 1 }}>
+            <box title=" Type 'REMOVE' to confirm " style={{ border: true, borderColor: tokens.error, height: 3, marginBottom: 1 }}>
               <input
                 value={removeConfirmation}
                 onInput={setRemoveConfirmation}
@@ -677,10 +681,10 @@ export function AccountsModal({
                 focused={true}
               />
             </box>
-            {errorMessage ? <text fg="#EF4444">⚠ {errorMessage}</text> : null}
+            {errorMessage ? <text fg={tokens.error}>⚠ {errorMessage}</text> : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
-              <HotkeyButton onPress={handleConfirmRemove} color="#EF4444">[Enter] Permanently Remove</HotkeyButton>
-              <HotkeyButton onPress={() => setMode("list")}>[Esc] Cancel</HotkeyButton>
+              <HotkeyButton onPress={handleConfirmRemove} color={tokens.error}>[Enter] Permanently Remove</HotkeyButton>
+              <HotkeyButton onPress={() => setMode("list")} color={tokens.textMuted}>[Esc] Cancel</HotkeyButton>
             </box>
           </box>
         )}

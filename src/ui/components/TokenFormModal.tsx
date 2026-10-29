@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
+import { useTheme } from "../context.js"
 import { HotkeyButton } from "./HotkeyButton.js"
 import type { TokenVerificationResult } from "../../core/interfaces.js"
 
@@ -18,6 +19,7 @@ export interface TokenFormModalProps {
 }
 
 export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClose }: TokenFormModalProps) {
+  const { tokens } = useTheme()
   const [address, setAddress] = useState(initialAddress)
   const [isVerifying, setIsVerifying] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,39 +62,29 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
         setWarning(result.warning || "Contract could not be verified as a standard ERC-20 token.")
         setStep("warning")
       }
-    } catch (err) {
+    } catch (err: any) {
       setIsVerifying(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      setError(`Verification error: ${msg}`)
+      setError(err.message || "Failed to query contract")
     }
   }
 
   const handleConfirmAdd = async () => {
     if (!resolvedData) return
     try {
+      setError(null)
       await onSubmit(resolvedData)
       onClose()
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      setError(msg)
+    } catch (err: any) {
+      setError(err.message || "Failed to add token")
     }
   }
 
   useKeyboard((key) => {
     if (key.name === "escape") {
       onClose()
-      return
-    }
-
-    if (step === "input") {
+    } else if (step === "input") {
       if (key.name === "return") {
         handleVerify()
-      } else if (key.name === "backspace") {
-        setAddress((prev) => prev.slice(0, -1))
-        setError(null)
-      } else if (key.sequence && key.sequence.length === 1 && !key.ctrl && !key.meta) {
-        setAddress((prev) => prev + key.sequence)
-        setError(null)
       }
     } else if (step === "confirm") {
       if (key.name === "return") {
@@ -109,26 +101,26 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
     <box
       flexDirection="column"
       borderStyle="single"
-      borderColor="#60A5FA"
-      backgroundColor="#090d16"
+      borderColor={tokens.borderActive}
+      backgroundColor={tokens.card}
       paddingLeft={2}
       paddingRight={2}
       paddingTop={1}
       paddingBottom={1}
       width={72}
     >
-      <text fg="#60A5FA">
+      <text fg={tokens.primary}>
         <b>➕ Add ERC-20 Token (FR-BAL-03, FR-BAL-08)</b>
       </text>
 
       {step === "input" && (
         <box flexDirection="column" marginTop={1}>
-          <text fg="#9CA3AF">Enter the ERC-20 contract address on the active network:</text>
+          <text fg={tokens.textMuted}>Enter the ERC-20 contract address on the active network:</text>
           <box
             title=" Contract Address "
             style={{
               border: true,
-              borderColor: error ? "#EF4444" : "#3B82F6",
+              borderColor: error ? tokens.error : tokens.borderActive,
               height: 3,
               marginTop: 1,
               marginBottom: 1,
@@ -146,71 +138,71 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
             />
           </box>
 
-          {isVerifying && <text fg="#FBBF24">⟳ Querying contract bytecode and ERC-20 metadata...</text>}
-          {error && <text fg="#EF4444">✖ {error}</text>}
+          {isVerifying && <text fg={tokens.warning}>⟳ Querying contract bytecode and ERC-20 metadata...</text>}
+          {error && <text fg={tokens.error}>✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <HotkeyButton onPress={handleVerify} color="#34D399">[Enter] Verify & Add</HotkeyButton>
-            <HotkeyButton onPress={onClose} color="#9CA3AF">[Esc] Cancel</HotkeyButton>
+            <HotkeyButton onPress={handleVerify} color={tokens.success}>[Enter] Verify & Add</HotkeyButton>
+            <HotkeyButton onPress={onClose} color={tokens.textMuted}>[Esc] Cancel</HotkeyButton>
           </box>
         </box>
       )}
 
       {step === "confirm" && resolvedData && (
         <box flexDirection="column" marginTop={1}>
-          <text fg="#34D399">
+          <text fg={tokens.success}>
             <b>✔ Valid ERC-20 Contract Verified!</b>
           </text>
           <box flexDirection="column" marginTop={1} paddingLeft={1}>
-            <text fg="#F3F4F6">
-              Name: <span fg="#60A5FA"><b>{resolvedData.name}</b></span>
+            <text fg={tokens.text}>
+              Name: <span fg={tokens.primary}><b>{resolvedData.name}</b></span>
             </text>
-            <text fg="#F3F4F6">
-              Symbol: <span fg="#FBBF24"><b>{resolvedData.symbol}</b></span>
+            <text fg={tokens.text}>
+              Symbol: <span fg={tokens.warning}><b>{resolvedData.symbol}</b></span>
             </text>
-            <text fg="#F3F4F6">
-              Decimals: <span fg="#9CA3AF">{resolvedData.decimals}</span>
+            <text fg={tokens.text}>
+              Decimals: <span fg={tokens.textMuted}>{resolvedData.decimals}</span>
             </text>
-            <text fg="#9CA3AF">Address: {resolvedData.address}</text>
+            <text fg={tokens.textMuted}>Address: {resolvedData.address}</text>
           </box>
 
-          {error && <text fg="#EF4444" marginTop={1}>✖ {error}</text>}
+          {error && <text fg={tokens.error} marginTop={1}>✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <HotkeyButton onPress={handleConfirmAdd} color="#34D399"><b>[Enter] Confirm & Track Token</b></HotkeyButton>
-            <HotkeyButton onPress={onClose} color="#9CA3AF">[Esc] Cancel</HotkeyButton>
+            <HotkeyButton onPress={handleConfirmAdd} color={tokens.success}><b>[Enter] Confirm & Track Token</b></HotkeyButton>
+            <HotkeyButton onPress={onClose} color={tokens.textMuted}>[Esc] Cancel</HotkeyButton>
           </box>
         </box>
       )}
 
       {step === "warning" && resolvedData && (
         <box flexDirection="column" marginTop={1}>
-          <box borderStyle="single" borderColor="#F59E0B" padding={1} flexDirection="column">
-            <text fg="#F59E0B">
+          <box borderStyle="single" borderColor={tokens.warning} padding={1} flexDirection="column" backgroundColor={tokens.surface}>
+            <text fg={tokens.warning}>
               <b>⚠ Warning: Contract Not Verified as Standard ERC-20</b>
             </text>
-            <text fg="#FCD34D" marginTop={1}>
+            <text fg={tokens.textMuted} marginTop={1}>
               {warning}
             </text>
-            <text fg="#9CA3AF" marginTop={1}>
+            <text fg={tokens.textMuted} marginTop={1}>
               Interacting with unverified contracts may display incorrect balances or pose security risks.
             </text>
           </box>
 
           <box marginTop={1} paddingLeft={1} flexDirection="column">
-            <text fg="#F3F4F6">
-              Target Address: <span fg="#9CA3AF">{resolvedData.address}</span>
+            <text fg={tokens.text}>
+              Target Address: <span fg={tokens.textMuted}>{resolvedData.address}</span>
             </text>
-            <text fg="#F3F4F6">
-              Assumed Symbol: <span fg="#FBBF24">{resolvedData.symbol}</span> (Decimals: {resolvedData.decimals})
+            <text fg={tokens.text}>
+              Assumed Symbol: <span fg={tokens.warning}>{resolvedData.symbol}</span> (Decimals: {resolvedData.decimals})
             </text>
           </box>
 
-          {error && <text fg="#EF4444" marginTop={1}>✖ {error}</text>}
+          {error && <text fg={tokens.error} marginTop={1}>✖ {error}</text>}
 
           <box marginTop={1} flexDirection="row" gap={2}>
-            <HotkeyButton onPress={handleConfirmAdd} color="#F59E0B"><b>[F] Force Add Anyway</b></HotkeyButton>
-            <HotkeyButton onPress={onClose} color="#9CA3AF">[Esc] Cancel</HotkeyButton>
+            <HotkeyButton onPress={handleConfirmAdd} color={tokens.warning}><b>[F] Force Add Anyway</b></HotkeyButton>
+            <HotkeyButton onPress={onClose} color={tokens.textMuted}>[Esc] Cancel</HotkeyButton>
           </box>
         </box>
       )}

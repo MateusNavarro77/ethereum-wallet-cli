@@ -5,6 +5,7 @@ import { Footer } from "../components/Footer.js"
 import { HotkeyButton } from "../components/HotkeyButton.js"
 import { LogoBanner } from "../components/LogoBanner.js"
 import { ResetModal } from "../components/ResetModal.js"
+import { useTheme } from "../context.js"
 import { useUnlock } from "../hooks/index.js"
 import type { WalletData } from "../../core/types.js"
 
@@ -15,6 +16,7 @@ interface UnlockScreenProps {
 
 export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
   const renderer = useRenderer()
+  const { tokens } = useTheme()
   const [showResetModal, setShowResetModal] = useState(false)
 
   const {
@@ -45,6 +47,7 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
         height: "100%",
         flexDirection: "column",
         justifyContent: "space-between",
+        backgroundColor: tokens.background,
       }}
     >
       <Header subtitle="Unlock Wallet" />
@@ -61,7 +64,8 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
           style={{
             flexDirection: "column",
             border: true,
-            borderColor: "#3B82F6",
+            borderColor: tokens.borderActive,
+            backgroundColor: tokens.card,
             padding: 1,
             width: 68,
           }}
@@ -75,7 +79,7 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
             title=" Enter Password "
             style={{
               border: true,
-              borderColor: "#60A5FA",
+              borderColor: tokens.borderActive,
               height: 3,
               marginBottom: 1,
             }}
@@ -91,19 +95,19 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
 
           {isLoading ? (
             <box style={{ marginBottom: 1 }}>
-              <text fg="#F59E0B">Decrypting wallet vault...</text>
+              <text fg={tokens.warning}>Decrypting wallet vault...</text>
             </box>
           ) : null}
 
           {errorMessage ? (
             <box style={{ marginBottom: 1 }}>
-              <text fg="#EF4444">⚠ {errorMessage}</text>
+              <text fg={tokens.error}>⚠ {errorMessage}</text>
             </box>
           ) : null}
 
           <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
-            <HotkeyButton onPress={handleUnlock} color="#9CA3AF">[Enter] Unlock Account</HotkeyButton>
-            <HotkeyButton onPress={() => setShowResetModal(true)} color="#EF4444">[X] Reset / Delete Vault</HotkeyButton>
+            <HotkeyButton onPress={handleUnlock} color={tokens.success}>[Enter] Unlock Account</HotkeyButton>
+            <HotkeyButton onPress={() => setShowResetModal(true)} color={tokens.error}>[X] Reset / Delete Vault</HotkeyButton>
           </box>
         </box>
       </box>
@@ -120,7 +124,11 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
       ) : null}
 
       <Footer>
-        <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={handleUnlock} color="#10B981">[Enter] Unlock</HotkeyButton><HotkeyButton onPress={() => setShowResetModal(true)} color="#EF4444">[X] Reset Vault</HotkeyButton><HotkeyButton onPress={() => { renderer.destroy(); process.exit(0) }} color="#9CA3AF">[Esc / Q] Quit</HotkeyButton></box>
+        <box style={{ flexDirection: "row", gap: 1 }}>
+          <HotkeyButton onPress={handleUnlock} color={tokens.success}>[Enter] Unlock</HotkeyButton>
+          <HotkeyButton onPress={() => setShowResetModal(true)} color={tokens.error}>[X] Reset Vault</HotkeyButton>
+          <HotkeyButton onPress={() => { renderer.destroy(); process.exit(0) }} color={tokens.textMuted}>[Esc / Q] Quit</HotkeyButton>
+        </box>
       </Footer>
     </box>
   )

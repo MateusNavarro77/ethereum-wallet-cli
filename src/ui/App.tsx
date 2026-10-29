@@ -1,4 +1,5 @@
 import { useWalletFlow } from "./hooks/index.js"
+import { useTheme } from "./context.js"
 import { WelcomeScreen } from "./screens/WelcomeScreen.js"
 import { PasswordScreen } from "./screens/PasswordScreen.js"
 import { MnemonicScreen } from "./screens/MnemonicScreen.js"
@@ -7,6 +8,7 @@ import { DashboardScreen } from "./screens/DashboardScreen.js"
 import { UnlockScreen } from "./screens/UnlockScreen.js"
 
 export function App() {
+  const { tokens } = useTheme()
   const {
     step,
     setStep,
@@ -44,17 +46,19 @@ export function App() {
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
+          backgroundColor: tokens.background,
         }}
       >
         <box
           style={{
             border: true,
-            borderColor: "#3B82F6",
+            borderColor: tokens.borderActive,
+            backgroundColor: tokens.card,
             padding: 1,
             alignItems: "center",
           }}
         >
-          <text fg="#60A5FA">
+          <text fg={tokens.primary}>
             <b>{loadingOverlay || "Initializing TermiWallet..."}</b>
           </text>
         </box>
@@ -71,21 +75,23 @@ export function App() {
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "column",
+          backgroundColor: tokens.background,
         }}
       >
         <box
           style={{
             border: true,
-            borderColor: "#EF4444",
+            borderColor: tokens.error,
+            backgroundColor: tokens.card,
             padding: 1,
             flexDirection: "column",
             width: 60,
           }}
         >
-          <text fg="#EF4444">
+          <text fg={tokens.error}>
             <b>Error Encountered</b>
           </text>
-          <text fg="#FFFFFF">{errorMessage}</text>
+          <text fg={tokens.text}>{errorMessage}</text>
         </box>
       </box>
     )

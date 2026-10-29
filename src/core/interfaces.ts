@@ -10,6 +10,7 @@ import type {
   WatchOnlyAccount,
   Web3KeystoreV3,
 } from "./types.js"
+import type { Theme, ThemeSummary } from "./theme.types.js"
 
 export interface PasswordAssessment {
   score: number // 0-4
@@ -154,3 +155,13 @@ export interface INetworkService {
 export interface IClipboardService {
   copy(text: string): Promise<boolean>
 }
+
+export interface IThemeService {
+  getAvailableThemes(): ThemeSummary[]
+  getTheme(id?: string): Theme
+  getActiveTheme(): Theme
+  getActiveThemeId(): string
+  setTheme(id: string): Promise<Theme>
+  reloadThemes(): Promise<void>
+}
+

@@ -68,6 +68,7 @@ export interface AppConfig {
   fiatCurrency?: string
   fiatEnabled?: boolean
   autoRefreshIntervalSeconds?: number
+  theme?: string
 }
 
 export interface EncryptedVault {

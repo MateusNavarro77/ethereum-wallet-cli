@@ -1,6 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react"
 import { ServiceContainer } from "../container/index.js"
 import type { ServiceMap, ServiceToken } from "../core/tokens.js"
+import { ThemeProvider, useTheme, type ThemeContextValue } from "./theme/context.js"
 
 const ContainerContext = createContext<ServiceContainer | null>(null)
 
@@ -10,7 +11,15 @@ export interface ContainerProviderProps {
 }
 
 export function ContainerProvider({ container, children }: ContainerProviderProps) {
-  return <ContainerContext.Provider value={container}>{children}</ContainerContext.Provider>
+  const themeService = container.has("themeService") ? container.resolve("themeService") : undefined
+
+  return (
+    <ContainerContext.Provider value={container}>
+      <ThemeProvider themeService={themeService}>
+        {children}
+      </ThemeProvider>
+    </ContainerContext.Provider>
+  )
 }
 
 export function useContainer(): ServiceContainer {
@@ -25,4 +34,7 @@ export function useService<K extends ServiceToken>(token: K): ServiceMap[K] {
   const container = useContainer()
   return container.resolve(token)
 }
+
+export { useTheme, ThemeProvider, type ThemeContextValue }
+
 

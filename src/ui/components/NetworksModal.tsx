@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react"
 import { useKeyboard } from "@opentui/react"
+import { useTheme } from "../context.js"
 import type { NetworkConfig } from "../../core/types.js"
 import type { NetworkConnectionStatus } from "../../core/interfaces.js"
 import { NetworkFormModal, type NetworkFormData } from "./NetworkFormModal.js"
@@ -28,6 +29,7 @@ export function NetworksModal({
   onRemoveNetwork,
   onClose,
 }: NetworksModalProps) {
+  const { tokens } = useTheme()
   const [selectedIndex, setSelectedIndex] = useState(() => {
     const idx = networks.findIndex((n) => n.chainId === activeNetwork.chainId)
     return idx >= 0 ? idx : 0
@@ -67,78 +69,83 @@ export function NetworksModal({
   }
 
   const resolveBadge = (net: NetworkConfig) => {
-    if (net.isLocal) {
-      return { text: "[LOCAL]", fg: "#22D3EE" }
-    } else if (net.isTestnet || net.chainId !== 1) {
-      return { text: "[TESTNET]", fg: "#FBBF24" }
-    }
-    return { text: "[MAINNET]", fg: "#34D399" }
+    if (net.isLocal || net.chainId === 31337) return { text: "[LOCAL]", fg: tokens.accent }
+    if (net.isTestnet || net.chainId !== 1) return { text: "[TESTNET]", fg: tokens.warning }
+    return { text: "[MAINNET]", fg: tokens.success }
   }
 
   const handleSwitch = async (net: NetworkConfig) => {
     try {
       setErrorMessage(null)
-      setStatusMessage(`Switching to ${net.name}...`)
       await onSelectNetwork(net.chainId)
-      setStatusMessage(`Switched to ${net.name} successfully!`)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      setErrorMessage(msg)
+      setStatusMessage(`Switched active network to ${net.name} (${net.chainId})`)
+      setTimeout(() => setStatusMessage(null), 2500)
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to switch network")
     }
   }
 
   const handleAddSave = async (data: NetworkFormData) => {
-    await onAddNetwork(data)
-    setMode("list")
-    setStatusMessage(`Added custom network ${data.name}!`)
-    setSelectedIndex(networks.length)
+    try {
+      const added = await onAddNetwork({
+        name: data.name,
+        rpcUrl: data.rpcUrl,
+        rpcUrls: data.rpcUrls,
+        chainId: data.chainId,
+        symbol: data.symbol,
+        explorerUrl: data.explorerUrl,
+      })
+      setMode("list")
+      setStatusMessage(`Added custom network ${added.name} (${added.chainId})`)
+      setTimeout(() => setStatusMessage(null), 2500)
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to add network")
+    }
   }
 
   const handleEditSave = async (data: NetworkFormData) => {
     if (!selectedNetwork) return
-    await onEditNetwork(selectedNetwork.chainId, data)
-    setMode("list")
-    setStatusMessage(`Updated network ${data.name}!`)
+    try {
+      const updated = await onEditNetwork(selectedNetwork.chainId, {
+        name: data.name,
+        rpcUrl: data.rpcUrl,
+        rpcUrls: data.rpcUrls,
+        symbol: data.symbol,
+        explorerUrl: data.explorerUrl,
+      })
+      setMode("list")
+      setStatusMessage(`Updated network ${updated.name} (${updated.chainId})`)
+      setTimeout(() => setStatusMessage(null), 2500)
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to update network")
+    }
   }
 
   const handleDeleteConfirm = async () => {
     if (!selectedNetwork) return
     try {
-      setErrorMessage(null)
       await onRemoveNetwork(selectedNetwork.chainId)
       setMode("list")
-      setStatusMessage(`Removed network ${selectedNetwork.name}`)
       setSelectedIndex((prev) => Math.max(0, prev - 1))
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      setErrorMessage(msg)
+      setStatusMessage(`Removed custom network ${selectedNetwork.name}`)
+      setTimeout(() => setStatusMessage(null), 2500)
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to remove network")
+      setMode("list")
     }
   }
 
   useKeyboard((key) => {
-    if (mode === "add" || mode === "edit") {
-      // Sub-modals handle their own keyboard input
-      return
-    }
-
     if (mode === "list") {
-      if (key.name === "escape") {
+      if (key.name === "escape" || key.name === "q" || key.name === "Q") {
         onClose()
-      } else if (key.name === "up") {
+      } else if (key.name === "up" || key.name === "k") {
         setSelectedIndex((prev) => Math.max(0, prev - 1))
-      } else if (key.name === "down") {
+      } else if (key.name === "down" || key.name === "j") {
         setSelectedIndex((prev) => Math.min(networks.length - 1, prev + 1))
-      } else if (key.name === "pageup") {
-        setSelectedIndex((prev) => Math.max(0, prev - PAGE_SIZE))
-      } else if (key.name === "pagedown") {
-        setSelectedIndex((prev) => Math.min(networks.length - 1, prev + PAGE_SIZE))
-      } else if (key.name === "home") {
-        setSelectedIndex(0)
-      } else if (key.name === "end") {
-        setSelectedIndex(Math.max(0, networks.length - 1))
       } else if (key.name === "return") {
         if (selectedNetwork) {
-          handleSwitch(selectedNetwork)
+          void handleSwitch(selectedNetwork)
         }
       } else if (key.name === "a" || key.name === "A") {
         setErrorMessage(null)
@@ -200,7 +207,7 @@ export function NetworksModal({
         height: "100%",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#000000",
+        backgroundColor: tokens.overlay,
         zIndex: 100,
       }}
     >
@@ -208,7 +215,8 @@ export function NetworksModal({
         title=" Manage Networks & RPC (FR-NET-02 & FR-NET-03) "
         style={{
           border: true,
-          borderColor: "#3B82F6",
+          borderColor: tokens.borderActive,
+          backgroundColor: tokens.card,
           padding: 1,
           width: 78,
           flexDirection: "column",
@@ -216,31 +224,31 @@ export function NetworksModal({
       >
         {/* Header subtitle & counts */}
         <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
-          <text fg="#60A5FA">
+          <text fg={tokens.primary}>
             <b>{networks.length} Networks Configured</b>
             {networks.length > PAGE_SIZE ? (
-              <span fg="#9CA3AF">
+              <span fg={tokens.textMuted}>
                 {" "}
                 ({effectiveOffset + 1}-{Math.min(effectiveOffset + PAGE_SIZE, networks.length)} of{" "}
                 {networks.length})
               </span>
             ) : null}
           </text>
-          <text fg="#9CA3AF">
-            Active: <span fg="#34D399"><b>{activeNetwork.name}</b></span> ({activeNetwork.chainId})
+          <text fg={tokens.textMuted}>
+            Active: <span fg={tokens.success}><b>{activeNetwork.name}</b></span> ({activeNetwork.chainId})
           </text>
         </box>
 
         {/* Status / Error notification */}
         {statusMessage ? (
           <box style={{ marginBottom: 1 }}>
-            <text fg="#34D399">✔ {statusMessage}</text>
+            <text fg={tokens.success}>✔ {statusMessage}</text>
           </box>
         ) : null}
 
         {errorMessage ? (
           <box style={{ marginBottom: 1 }}>
-            <text fg="#EF4444">⚠ {errorMessage}</text>
+            <text fg={tokens.error}>⚠ {errorMessage}</text>
           </box>
         ) : null}
 
@@ -250,19 +258,20 @@ export function NetworksModal({
             title=" Confirm Network Removal "
             style={{
               border: true,
-              borderColor: "#EF4444",
+              borderColor: tokens.error,
+              backgroundColor: tokens.surface,
               padding: 1,
               flexDirection: "column",
               marginBottom: 1,
             }}
           >
-            <text fg="#EF4444">
+            <text fg={tokens.error}>
               <b>Are you sure you want to remove {selectedNetwork.name} ({selectedNetwork.chainId})?</b>
             </text>
-            <text fg="#9CA3AF">This action will delete the network configuration from your vault.</text>
+            <text fg={tokens.textMuted}>This action will delete the network configuration from your vault.</text>
             <box style={{ flexDirection: "row", gap: 2, marginTop: 1 }}>
-              <HotkeyButton onPress={handleDeleteConfirm} color="#EF4444"><b>[Y / Enter] Confirm Delete</b></HotkeyButton>
-              <HotkeyButton onPress={() => setMode("list")} color="#60A5FA">[N / Esc] Cancel</HotkeyButton>
+              <HotkeyButton onPress={handleDeleteConfirm} color={tokens.error}><b>[Y / Enter] Confirm Delete</b></HotkeyButton>
+              <HotkeyButton onPress={() => setMode("list")} color={tokens.secondary}>[N / Esc] Cancel</HotkeyButton>
             </box>
           </box>
         ) : null}
@@ -272,7 +281,8 @@ export function NetworksModal({
           title={` Networks [${safeSelectedIndex + 1}/${networks.length}] ${effectiveOffset > 0 ? "▲" : " "} ${effectiveOffset + PAGE_SIZE < networks.length ? "▼" : " "} `}
           style={{
             border: true,
-            borderColor: "#4B5563",
+            borderColor: tokens.border,
+            backgroundColor: tokens.surface,
             paddingX: 1,
             paddingY: 0,
             flexDirection: "column",
@@ -295,29 +305,29 @@ export function NetworksModal({
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
-                  backgroundColor: isSelected ? "#1E3A8A" : undefined,
+                  backgroundColor: isSelected ? tokens.selectionBg : "transparent",
                 }}
               >
                 <box style={{ flexDirection: "row", gap: 1 }}>
-                  <text fg={isSelected ? "#60A5FA" : "#9CA3AF"}>
+                  <text fg={isSelected ? tokens.selectionFg : tokens.textMuted}>
                     {isSelected ? ">" : " "}
                   </text>
                   <text fg={badge.fg}>
                     <b>{badge.text}</b>
                   </text>
-                  <text fg={isSelected ? "#FFFFFF" : "#E5E7EB"}>
+                  <text fg={isSelected ? tokens.selectionFg : tokens.text}>
                     <b>{net.name}</b>
                   </text>
-                  <text fg="#9CA3AF">({net.chainId})</text>
-                  <text fg="#6B7280">{originTag}</text>
+                  <text fg={isSelected ? tokens.selectionFg : tokens.textMuted}>({net.chainId})</text>
+                  <text fg={isSelected ? tokens.selectionFg : tokens.textSubtle}>{originTag}</text>
                 </box>
 
                 <box style={{ flexDirection: "row", gap: 1 }}>
                   {net.rpcUrls && net.rpcUrls.length > 1 ? (
-                    <text fg="#60A5FA">[{net.rpcUrls.length} RPCs]</text>
+                    <text fg={isSelected ? tokens.selectionFg : tokens.secondary}>[{net.rpcUrls.length} RPCs]</text>
                   ) : null}
                   {isActive ? (
-                    <text fg="#34D399">
+                    <text fg={isSelected ? tokens.selectionFg : tokens.success}>
                       <b>* [ACTIVE]</b>
                     </text>
                   ) : null}
@@ -333,7 +343,8 @@ export function NetworksModal({
             title={` Selected: ${selectedNetwork.name} `}
             style={{
               border: true,
-              borderColor: "#374151",
+              borderColor: tokens.borderSubtle,
+              backgroundColor: tokens.surface,
               paddingX: 1,
               paddingY: 0,
               flexDirection: "column",
@@ -341,23 +352,23 @@ export function NetworksModal({
             }}
           >
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#9CA3AF">Primary RPC:</text>
-              <text fg="#E5E7EB">{selectedNetwork.rpcUrl}</text>
+              <text fg={tokens.textMuted}>Primary RPC:</text>
+              <text fg={tokens.text}>{selectedNetwork.rpcUrl}</text>
             </box>
             {selectedNetwork.rpcUrls && selectedNetwork.rpcUrls.length > 1 ? (
               <box style={{ flexDirection: "column" }}>
-                <text fg="#9CA3AF">Fallbacks (FR-NET-05):</text>
-                <text fg="#6B7280">{selectedNetwork.rpcUrls.slice(1).join(", ")}</text>
+                <text fg={tokens.textMuted}>Fallbacks (FR-NET-05):</text>
+                <text fg={tokens.textSubtle}>{selectedNetwork.rpcUrls.slice(1).join(", ")}</text>
               </box>
             ) : null}
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <text fg="#9CA3AF">Currency Symbol:</text>
-              <text fg="#E5E7EB"><b>{selectedNetwork.symbol}</b></text>
+              <text fg={tokens.textMuted}>Currency Symbol:</text>
+              <text fg={tokens.text}><b>{selectedNetwork.symbol}</b></text>
             </box>
             {selectedNetwork.explorerUrl ? (
               <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <text fg="#9CA3AF">Explorer:</text>
-                <text fg="#60A5FA">{selectedNetwork.explorerUrl}</text>
+                <text fg={tokens.textMuted}>Explorer:</text>
+                <text fg={tokens.primary}>{selectedNetwork.explorerUrl}</text>
               </box>
             ) : null}
           </box>
@@ -372,12 +383,12 @@ export function NetworksModal({
           }}
         >
           <box style={{ flexDirection: "row", gap: 1 }}>
-            <HotkeyButton onPress={() => selectedNetwork && void handleSwitch(selectedNetwork)} color="#34D399">[Enter] Switch</HotkeyButton>
-            <HotkeyButton onPress={() => { setErrorMessage(null); setMode("add") }}>[A] Add</HotkeyButton>
-            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be modified (FR-NET-03)"); return } setErrorMessage(null); setMode("edit") }} color="#FBBF24">[E] Edit</HotkeyButton>
-            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be removed (FR-NET-03)"); return } setErrorMessage(null); setMode("confirm-delete") }} color="#EF4444">[D] Delete</HotkeyButton>
+            <HotkeyButton onPress={() => selectedNetwork && void handleSwitch(selectedNetwork)} color={tokens.success}>[Enter] Switch</HotkeyButton>
+            <HotkeyButton onPress={() => { setErrorMessage(null); setMode("add") }} color={tokens.secondary}>[A] Add</HotkeyButton>
+            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be modified (FR-NET-03)"); return } setErrorMessage(null); setMode("edit") }} color={tokens.warning}>[E] Edit</HotkeyButton>
+            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be removed (FR-NET-03)"); return } setErrorMessage(null); setMode("confirm-delete") }} color={tokens.error}>[D] Delete</HotkeyButton>
           </box>
-          <HotkeyButton onPress={onClose}>[Esc] Close</HotkeyButton>
+          <HotkeyButton onPress={onClose} color={tokens.textMuted}>[Esc] Close</HotkeyButton>
         </box>
       </box>
     </box>

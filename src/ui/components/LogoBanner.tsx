@@ -1,4 +1,5 @@
 import type { ASCIIFontName } from "@opentui/core"
+import { useTheme } from "../context.js"
 
 interface LogoBannerProps {
   text?: string
@@ -11,10 +12,13 @@ interface LogoBannerProps {
 export function LogoBanner({
   text = "TermiWallet",
   font = "tiny",
-  color = "#60A5FA",
+  color,
   subtitle,
   description,
 }: LogoBannerProps) {
+  const { tokens } = useTheme()
+  const bannerColor = color || tokens.primary
+
   return (
     <box
       style={{
@@ -24,17 +28,17 @@ export function LogoBanner({
         marginBottom: 1,
       }}
     >
-      <ascii-font text={text} font={font} color={color} />
+      <ascii-font text={text} font={font} color={bannerColor} />
       {subtitle ? (
         <box style={{ marginTop: 1, alignItems: "center" }}>
-          <text fg="#60A5FA">
+          <text fg={tokens.secondary}>
             <b>{subtitle}</b>
           </text>
         </box>
       ) : null}
       {description ? (
         <box style={{ marginTop: subtitle ? 0 : 1, alignItems: "center" }}>
-          <text fg="#D1D5DB">{description}</text>
+          <text fg={tokens.textMuted}>{description}</text>
         </box>
       ) : null}
     </box>

@@ -8,6 +8,7 @@ import type {
   IKeystoreService,
   ITokenService,
   IPriceService,
+  IThemeService,
 } from "./interfaces.js"
 
 export interface ServiceMap {
@@ -20,6 +21,7 @@ export interface ServiceMap {
   keystoreService: IKeystoreService
   tokenService: ITokenService
   priceService: IPriceService
+  themeService: IThemeService
 }
 
 export type ServiceToken = keyof ServiceMap

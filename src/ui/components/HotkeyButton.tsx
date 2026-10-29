@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react"
+import { useTheme } from "../context.js"
 
 interface HotkeyButtonProps {
   children: ReactNode
@@ -6,8 +7,11 @@ interface HotkeyButtonProps {
   color?: string
 }
 
-export function HotkeyButton({ children, onPress, color = "#60A5FA" }: HotkeyButtonProps) {
+export function HotkeyButton({ children, onPress, color }: HotkeyButtonProps) {
   const [hovered, setHovered] = useState(false)
+  const { tokens } = useTheme()
+
+  const defaultFg = color || tokens.secondary
 
   return (
     <box
@@ -18,9 +22,11 @@ export function HotkeyButton({ children, onPress, color = "#60A5FA" }: HotkeyBut
       }}
       onMouseOver={() => setHovered(true)}
       onMouseOut={() => setHovered(false)}
-      style={{ backgroundColor: hovered ? "#1F2937" : "transparent" }}
+      style={{ backgroundColor: hovered ? tokens.surface : "transparent" }}
     >
-      <text selectable={false} fg={hovered ? "#FFFFFF" : color}>{children}</text>
+      <text selectable={false} fg={hovered ? tokens.text : defaultFg}>
+        {children}
+      </text>
     </box>
   )
 }

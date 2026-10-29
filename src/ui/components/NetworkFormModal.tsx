@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react"
 import { useKeyboard } from "@opentui/react"
+import { useTheme } from "../context.js"
 import { HotkeyButton } from "./HotkeyButton.js"
 import type { NetworkConfig } from "../../core/types.js"
 
@@ -23,6 +24,7 @@ export function NetworkFormModal({
   onSave,
   onCancel,
 }: NetworkFormModalProps) {
+  const { tokens } = useTheme()
   const isEditing = Boolean(networkToEdit)
 
   const [name, setName] = useState(networkToEdit?.name || "")
@@ -59,46 +61,37 @@ export function NetworkFormModal({
 
     const parsedChainId = chainIdInput.trim() ? parseInt(chainIdInput.trim(), 10) : 0
     if (chainIdInput.trim() && (isNaN(parsedChainId) || parsedChainId <= 0)) {
-      setErrorMessage("Chain ID must be a positive integer or left blank for auto-detect")
+      setErrorMessage("Chain ID must be a positive integer if provided")
       return
     }
 
     try {
       setIsVerifying(true)
       setErrorMessage(null)
-
       await onSave({
         name: name.trim(),
         rpcUrl: rawUrls[0],
         rpcUrls: rawUrls,
         chainId: parsedChainId,
-        symbol: (symbol || "ETH").trim().toUpperCase(),
+        symbol: symbol.trim() || "ETH",
         explorerUrl: explorerUrl.trim() || undefined,
       })
-    } catch (err) {
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to save custom network")
+    } finally {
       setIsVerifying(false)
-      const msg = err instanceof Error ? err.message : String(err)
-      setErrorMessage(msg)
     }
   }, [name, rpcInput, chainIdInput, symbol, explorerUrl, onSave])
 
   useKeyboard((key) => {
-    if (isVerifying) return
-
     if (key.name === "escape") {
       onCancel()
-    } else if (key.name === "tab") {
-      setFocusedInput((prev) => (prev + 1) % 5)
-    } else if (key.name === "down") {
+    } else if (key.name === "return") {
+      handleSave()
+    } else if (key.name === "tab" || key.name === "down") {
       setFocusedInput((prev) => (prev + 1) % 5)
     } else if (key.name === "up") {
       setFocusedInput((prev) => (prev - 1 + 5) % 5)
-    } else if (key.name === "return") {
-      if (focusedInput === 4) {
-        handleSave()
-      } else {
-        setFocusedInput((prev) => (prev + 1) % 5)
-      }
     }
   })
 
@@ -110,24 +103,25 @@ export function NetworkFormModal({
         left: 0,
         width: "100%",
         height: "100%",
-        alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#000000",
-        zIndex: 150,
+        alignItems: "center",
+        backgroundColor: tokens.overlay,
+        zIndex: 50,
       }}
     >
       <box
         title={isEditing ? ` Edit Custom Network (${networkToEdit?.chainId}) ` : " Add Custom Network (FR-NET-03) "}
         style={{
           border: true,
-          borderColor: "#3B82F6",
+          borderColor: tokens.borderActive,
+          backgroundColor: tokens.card,
           padding: 1,
           width: 72,
           flexDirection: "column",
         }}
       >
         <box style={{ marginBottom: 1 }}>
-          <text fg="#60A5FA">
+          <text fg={tokens.primary}>
             <b>{isEditing ? "Modify EVM Network Configuration" : "Configure New Custom EVM Network"}</b>
           </text>
         </box>
@@ -138,7 +132,7 @@ export function NetworkFormModal({
           title=" Network Name "
           style={{
             border: true,
-            borderColor: focusedInput === 0 ? "#60A5FA" : "#4B5563",
+            borderColor: focusedInput === 0 ? tokens.borderActive : tokens.border,
             height: 3,
             marginBottom: 1,
           }}
@@ -157,7 +151,7 @@ export function NetworkFormModal({
           title=" RPC URL(s) (Comma-separated for fallback - FR-NET-05) "
           style={{
             border: true,
-            borderColor: focusedInput === 1 ? "#60A5FA" : "#4B5563",
+            borderColor: focusedInput === 1 ? tokens.borderActive : tokens.border,
             height: 3,
             marginBottom: 1,
           }}
@@ -176,7 +170,7 @@ export function NetworkFormModal({
           title=" Chain ID (Optional: leave blank to auto-detect - FR-NET-04) "
           style={{
             border: true,
-            borderColor: focusedInput === 2 ? "#60A5FA" : "#4B5563",
+            borderColor: focusedInput === 2 ? tokens.borderActive : tokens.border,
             height: 3,
             marginBottom: 1,
           }}
@@ -195,7 +189,7 @@ export function NetworkFormModal({
           title=" Currency Symbol (Default: ETH) "
           style={{
             border: true,
-            borderColor: focusedInput === 3 ? "#60A5FA" : "#4B5563",
+            borderColor: focusedInput === 3 ? tokens.borderActive : tokens.border,
             height: 3,
             marginBottom: 1,
           }}
@@ -214,7 +208,7 @@ export function NetworkFormModal({
           title=" Block Explorer URL (Optional) "
           style={{
             border: true,
-            borderColor: focusedInput === 4 ? "#60A5FA" : "#4B5563",
+            borderColor: focusedInput === 4 ? tokens.borderActive : tokens.border,
             height: 3,
             marginBottom: 1,
           }}
@@ -230,26 +224,25 @@ export function NetworkFormModal({
         {/* Status / Error display */}
         {isVerifying ? (
           <box style={{ marginBottom: 1 }}>
-            <text fg="#FBBF24">⏳ Testing RPC connection and verifying Chain ID...</text>
+            <text fg={tokens.warning}>⏳ Testing RPC connection and verifying Chain ID...</text>
           </box>
         ) : null}
 
         {errorMessage ? (
           <box style={{ marginBottom: 1 }}>
-            <text fg="#EF4444">⚠ {errorMessage}</text>
+            <text fg={tokens.error}>⚠ {errorMessage}</text>
           </box>
         ) : null}
 
         {/* Action hints */}
         <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
           <box style={{ flexDirection: "row", gap: 1 }}>
-            <HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 5)}>[Tab / ↓] Next</HotkeyButton>
-            <HotkeyButton onPress={handleSave} color="#34D399">[Enter] Test & Save</HotkeyButton>
-            <HotkeyButton onPress={onCancel} color="#EF4444">[Esc] Cancel</HotkeyButton>
+            <HotkeyButton onPress={() => setFocusedInput((prev) => (prev + 1) % 5)} color={tokens.secondary}>[Tab / ↓] Next</HotkeyButton>
+            <HotkeyButton onPress={handleSave} color={tokens.success}>[Enter] Test & Save</HotkeyButton>
+            <HotkeyButton onPress={onCancel} color={tokens.error}>[Esc] Cancel</HotkeyButton>
           </box>
         </box>
       </box>
     </box>
   )
 }
-

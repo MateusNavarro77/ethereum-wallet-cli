@@ -3,6 +3,7 @@ import { Header } from "../components/Header.js"
 import { Footer } from "../components/Footer.js"
 import { HotkeyButton } from "../components/HotkeyButton.js"
 import { LogoBanner } from "../components/LogoBanner.js"
+import { useTheme } from "../context.js"
 import { usePasswordForm } from "../hooks/index.js"
 
 interface PasswordScreenProps {
@@ -16,6 +17,7 @@ export function PasswordScreen({
   onCancel,
   title = "Set Master Password",
 }: PasswordScreenProps) {
+  const { tokens } = useTheme()
   const {
     password,
     setPassword,
@@ -50,6 +52,7 @@ export function PasswordScreen({
         height: "100%",
         flexDirection: "column",
         justifyContent: "space-between",
+        backgroundColor: tokens.background,
       }}
     >
       <Header subtitle={title} />
@@ -66,7 +69,8 @@ export function PasswordScreen({
           style={{
             flexDirection: "column",
             border: true,
-            borderColor: "#3B82F6",
+            borderColor: tokens.borderActive,
+            backgroundColor: tokens.card,
             padding: 1,
             width: 68,
           }}
@@ -82,7 +86,7 @@ export function PasswordScreen({
             title=" Wallet Password "
             style={{
               border: true,
-              borderColor: focusedField === "password" ? "#60A5FA" : "#4B5563",
+              borderColor: focusedField === "password" ? tokens.borderActive : tokens.border,
               height: 3,
               marginBottom: 1,
             }}
@@ -102,7 +106,7 @@ export function PasswordScreen({
             title=" Confirm Password "
             style={{
               border: true,
-              borderColor: focusedField === "confirm" ? "#60A5FA" : "#4B5563",
+              borderColor: focusedField === "confirm" ? tokens.borderActive : tokens.border,
               height: 3,
               marginBottom: 1,
             }}
@@ -118,25 +122,33 @@ export function PasswordScreen({
 
           {/* Strength & Feedback */}
           <box style={{ flexDirection: "row", marginBottom: 1, gap: 1 }}>
-            <text fg="#9CA3AF">Strength: </text>
+            <text fg={tokens.textMuted}>Strength: </text>
             <text fg={strength.color}>{strength.bar}</text>
             <text fg={strength.color}> ({strength.label})</text>
           </box>
 
           {errorMessage ? (
             <box style={{ marginBottom: 1 }}>
-              <text fg="#EF4444">⚠ {errorMessage}</text>
+              <text fg={tokens.error}>⚠ {errorMessage}</text>
             </box>
           ) : null}
 
           <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
-            <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={toggleFocus} color="#9CA3AF">[Tab] Switch field</HotkeyButton><HotkeyButton onPress={handleProceed} color="#9CA3AF">[Enter] Continue</HotkeyButton>{onCancel ? <HotkeyButton onPress={onCancel}>[Esc] Back</HotkeyButton> : null}</box>
+            <box style={{ flexDirection: "row", gap: 1 }}>
+              <HotkeyButton onPress={toggleFocus} color={tokens.secondary}>[Tab] Switch field</HotkeyButton>
+              <HotkeyButton onPress={handleProceed} color={tokens.success}>[Enter] Continue</HotkeyButton>
+              {onCancel ? <HotkeyButton onPress={onCancel} color={tokens.textMuted}>[Esc] Back</HotkeyButton> : null}
+            </box>
           </box>
         </box>
       </box>
 
       <Footer>
-        <box style={{ flexDirection: "row", gap: 1 }}><HotkeyButton onPress={toggleFocus} color="#60A5FA">[Tab] Switch Field</HotkeyButton><HotkeyButton onPress={handleProceed} color="#10B981">[Enter] Continue</HotkeyButton>{onCancel ? <HotkeyButton onPress={onCancel} color="#EF4444">[Esc] Back</HotkeyButton> : null}</box>
+        <box style={{ flexDirection: "row", gap: 1 }}>
+          <HotkeyButton onPress={toggleFocus} color={tokens.secondary}>[Tab] Switch Field</HotkeyButton>
+          <HotkeyButton onPress={handleProceed} color={tokens.success}>[Enter] Continue</HotkeyButton>
+          {onCancel ? <HotkeyButton onPress={onCancel} color={tokens.error}>[Esc] Back</HotkeyButton> : null}
+        </box>
       </Footer>
     </box>
   )

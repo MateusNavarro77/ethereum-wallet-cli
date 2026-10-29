@@ -1,7 +1,0 @@
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "oven.bun-vscode",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.oxlint": "explicit"
-  }
-}

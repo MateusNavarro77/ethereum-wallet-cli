@@ -151,7 +151,7 @@ export function MnemonicScreen({ mnemonic, onComplete, onCancel }: MnemonicScree
             <>
               <box style={{ marginBottom: 1 }}>
                 <text fg={tokens.primary}>
-                  <b>Verify Recovery Phrase Backup (FR-ACC-02)</b>
+                  <b>Verify Recovery Phrase Backup</b>
                 </text>
               </box>
 

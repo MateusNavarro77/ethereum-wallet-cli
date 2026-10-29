@@ -67,7 +67,7 @@ describe("Network management UI", () => {
     const frame = setup.captureCharFrame()
 
     // Title and counts
-    expect(frame).toContain("Manage Networks & RPC (FR-NET-02 & FR-NET-03)")
+    expect(frame).toContain("Manage Networks & RPC")
     expect(frame).toContain("4 Networks Configured")
 
     // Network names & distinct badges
@@ -164,7 +164,7 @@ describe("Network management UI", () => {
     })
     await setup.renderOnce()
     let frame = setup.captureCharFrame()
-    expect(frame).toContain("Preset networks cannot be modified (FR-NET-03)")
+    expect(frame).toContain("Preset networks cannot be modified")
 
     // Press 'd' on Mainnet (preset)
     await act(async () => {
@@ -172,7 +172,7 @@ describe("Network management UI", () => {
     })
     await setup.renderOnce()
     frame = setup.captureCharFrame()
-    expect(frame).toContain("Preset networks cannot be removed (FR-NET-03)")
+    expect(frame).toContain("Preset networks cannot be removed")
 
     setup.renderer.destroy()
   })
@@ -231,7 +231,7 @@ describe("Network management UI", () => {
     await setup.renderOnce()
     const frame = setup.captureCharFrame()
 
-    expect(frame).toContain("Add Custom Network (FR-NET-03)")
+    expect(frame).toContain("Add Custom Network")
     expect(frame).toContain("Network Name")
     expect(frame).toContain("RPC URL(s)")
     expect(frame).toContain("Chain ID")

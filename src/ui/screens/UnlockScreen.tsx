@@ -65,7 +65,7 @@ export function UnlockScreen({ onUnlocked, onReset }: UnlockScreenProps) {
             flexDirection: "column",
             border: true,
             borderColor: tokens.borderActive,
-            backgroundColor: tokens.card,
+            backgroundColor: tokens.background,
             padding: 1,
             width: 68,
           }}

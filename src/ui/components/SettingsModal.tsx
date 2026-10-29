@@ -65,7 +65,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           width: 76,
           border: true,
           borderColor: tokens.borderActive,
-          backgroundColor: tokens.card,
+          
           paddingX: 2,
           paddingY: 1,
           flexDirection: "column",

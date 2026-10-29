@@ -75,7 +75,7 @@ export function ImportScreen({ onComplete, onCancel }: ImportScreenProps) {
             width: 78,
             border: true,
             borderColor: tokens.borderActive,
-            backgroundColor: tokens.card,
+            
             padding: 1,
             flexDirection: "column",
           }}

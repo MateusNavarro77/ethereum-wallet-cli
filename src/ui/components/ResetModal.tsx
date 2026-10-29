@@ -38,7 +38,7 @@ export function ResetModal({ onConfirm, onCancel }: ResetModalProps) {
         width: 70,
         border: true,
         borderColor: tokens.error,
-        backgroundColor: tokens.card,
+        
         padding: 1,
         flexDirection: "column",
       }}

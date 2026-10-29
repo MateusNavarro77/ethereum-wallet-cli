@@ -110,11 +110,11 @@ export function NetworkFormModal({
       }}
     >
       <box
-        title={isEditing ? ` Edit Custom Network (${networkToEdit?.chainId}) ` : " Add Custom Network (FR-NET-03) "}
+        title={isEditing ? ` Edit Custom Network (${networkToEdit?.chainId}) ` : " Add Custom Network "}
         style={{
           border: true,
           borderColor: tokens.borderActive,
-          backgroundColor: tokens.card,
+          
           padding: 1,
           width: 72,
           flexDirection: "column",
@@ -148,7 +148,7 @@ export function NetworkFormModal({
         {/* 2. RPC Endpoint(s) */}
         <box
           onMouseDown={() => setFocusedInput(1)}
-          title=" RPC URL(s) (Comma-separated for fallback - FR-NET-05) "
+          title=" RPC URL(s) (Comma-separated for fallback) "
           style={{
             border: true,
             borderColor: focusedInput === 1 ? tokens.borderActive : tokens.border,
@@ -167,7 +167,7 @@ export function NetworkFormModal({
         {/* 3. Chain ID */}
         <box
           onMouseDown={() => setFocusedInput(2)}
-          title=" Chain ID (Optional: leave blank to auto-detect - FR-NET-04) "
+          title=" Chain ID (Optional: leave blank to auto-detect) "
           style={{
             border: true,
             borderColor: focusedInput === 2 ? tokens.borderActive : tokens.border,

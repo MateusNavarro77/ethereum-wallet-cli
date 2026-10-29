@@ -402,7 +402,7 @@ export function AccountsModal({
           width: 78,
           border: true,
           borderColor: tokens.borderActive,
-          backgroundColor: tokens.card,
+          backgroundColor: tokens.background,
           padding: 1,
           flexDirection: "column",
         }}
@@ -548,15 +548,15 @@ export function AccountsModal({
             <box style={{ border: true, borderColor: tokens.border, backgroundColor: tokens.surface, padding: 1, flexDirection: "column", marginBottom: 1 }}>
               <box style={{ marginBottom: 1 }}>
                 <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-privkey") }} color={tokens.success}><b>[1] Import Raw Private Key</b></HotkeyButton>
-                <text fg={tokens.textMuted}> - Enter 32-byte hex private key (FR-ACC-04)</text>
+                <text fg={tokens.textMuted}> - Enter 32-byte hex private key</text>
               </box>
               <box style={{ marginBottom: 1 }}>
                 <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setInputField3(""); setMode("import-keystore") }} color={tokens.secondary}><b>[2] Import Web3 JSON Keystore File</b></HotkeyButton>
-                <text fg={tokens.textMuted}> - File path or JSON string with password (FR-ACC-05)</text>
+                <text fg={tokens.textMuted}> - File path or JSON string with password</text>
               </box>
               <box>
                 <HotkeyButton onPress={() => { setInputField1(""); setInputField2(""); setMode("import-watchonly") }} color={tokens.warning}><b>[3] Add Watch-Only Account</b></HotkeyButton>
-                <text fg={tokens.textMuted}> - Address only, tracking without signing (FR-ACC-08)</text>
+                <text fg={tokens.textMuted}> - Address only, tracking without signing</text>
               </box>
             </box>
             <box style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -570,7 +570,7 @@ export function AccountsModal({
         {mode === "import-privkey" && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg={tokens.success}><b>Import Raw Private Key (FR-ACC-04)</b></text>
+              <text fg={tokens.success}><b>Import Raw Private Key</b></text>
             </box>
             <box onMouseDown={() => setFocusedInput(0)} title=" 32-Byte Hex Private Key (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
@@ -599,7 +599,7 @@ export function AccountsModal({
         {mode === "import-keystore" && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg={tokens.primary}><b>Import Web3 Keystore File (FR-ACC-05)</b></text>
+              <text fg={tokens.primary}><b>Import Web3 Keystore File</b></text>
             </box>
             <box onMouseDown={() => setFocusedInput(0)} title=" File Path (e.g. ~/.ethereum/keystore/... or paste JSON) " style={{ border: true, borderColor: focusedInput === 0 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input
@@ -636,7 +636,7 @@ export function AccountsModal({
         {mode === "import-watchonly" && (
           <box style={{ flexDirection: "column", padding: 1 }}>
             <box style={{ marginBottom: 1 }}>
-              <text fg={tokens.warning}><b>Add Watch-Only Account (FR-ACC-08)</b></text>
+              <text fg={tokens.warning}><b>Add Watch-Only Account</b></text>
             </box>
             <box onMouseDown={() => setFocusedInput(0)} title=" Ethereum Address (0x...) " style={{ border: true, borderColor: focusedInput === 0 ? tokens.borderActive : tokens.border, height: 3, marginBottom: 1 }}>
               <input

@@ -74,7 +74,7 @@ export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
             width: 72,
             border: true,
             borderColor: tokens.borderActive,
-            backgroundColor: tokens.card,
+            
             padding: 1,
             flexDirection: "column",
           }}
@@ -122,7 +122,7 @@ export function WelcomeScreen({ onCreateNew, onImport }: WelcomeScreenProps) {
             >
               <box style={{ marginBottom: 1 }}>
                 <text fg={tokens.warning}>
-                  <b>Select Recovery Phrase Length (FR-ACC-01)</b>
+                  <b>Select Recovery Phrase Length</b>
                 </text>
               </box>
 

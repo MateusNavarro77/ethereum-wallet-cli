@@ -153,7 +153,7 @@ export function NetworksModal({
       } else if (key.name === "e" || key.name === "E") {
         if (!selectedNetwork) return
         if (isPreset(selectedNetwork)) {
-          setErrorMessage("Preset networks cannot be modified (FR-NET-03)")
+          setErrorMessage("Preset networks cannot be modified")
           return
         }
         setErrorMessage(null)
@@ -161,7 +161,7 @@ export function NetworksModal({
       } else if (key.name === "d" || key.name === "D") {
         if (!selectedNetwork) return
         if (isPreset(selectedNetwork)) {
-          setErrorMessage("Preset networks cannot be removed (FR-NET-03)")
+          setErrorMessage("Preset networks cannot be removed")
           return
         }
         setErrorMessage(null)
@@ -212,11 +212,11 @@ export function NetworksModal({
       }}
     >
       <box
-        title=" Manage Networks & RPC (FR-NET-02 & FR-NET-03) "
+        title="Manage Networks & RPC"
         style={{
           border: true,
           borderColor: tokens.borderActive,
-          backgroundColor: tokens.card,
+          
           padding: 1,
           width: 78,
           flexDirection: "column",
@@ -357,7 +357,7 @@ export function NetworksModal({
             </box>
             {selectedNetwork.rpcUrls && selectedNetwork.rpcUrls.length > 1 ? (
               <box style={{ flexDirection: "column" }}>
-                <text fg={tokens.textMuted}>Fallbacks (FR-NET-05):</text>
+                <text fg={tokens.textMuted}>Fallbacks:</text>
                 <text fg={tokens.textSubtle}>{selectedNetwork.rpcUrls.slice(1).join(", ")}</text>
               </box>
             ) : null}
@@ -385,8 +385,8 @@ export function NetworksModal({
           <box style={{ flexDirection: "row", gap: 1 }}>
             <HotkeyButton onPress={() => selectedNetwork && void handleSwitch(selectedNetwork)} color={tokens.success}>[Enter] Switch</HotkeyButton>
             <HotkeyButton onPress={() => { setErrorMessage(null); setMode("add") }} color={tokens.secondary}>[A] Add</HotkeyButton>
-            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be modified (FR-NET-03)"); return } setErrorMessage(null); setMode("edit") }} color={tokens.warning}>[E] Edit</HotkeyButton>
-            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be removed (FR-NET-03)"); return } setErrorMessage(null); setMode("confirm-delete") }} color={tokens.error}>[D] Delete</HotkeyButton>
+            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be modified"); return } setErrorMessage(null); setMode("edit") }} color={tokens.warning}>[E] Edit</HotkeyButton>
+            <HotkeyButton onPress={() => { if (!selectedNetwork) return; if (isPreset(selectedNetwork)) { setErrorMessage("Preset networks cannot be removed"); return } setErrorMessage(null); setMode("confirm-delete") }} color={tokens.error}>[D] Delete</HotkeyButton>
           </box>
           <HotkeyButton onPress={onClose} color={tokens.textMuted}>[Esc] Close</HotkeyButton>
         </box>

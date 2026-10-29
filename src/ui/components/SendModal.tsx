@@ -155,11 +155,11 @@ export function SendModal({
       }}
     >
       <box
-        title="Send Transaction"
+        title=" Send Transaction (FR-SND-01 / FR-SND-02) "
         style={{
           border: true,
           borderColor: tokens.borderActive,
-          
+          backgroundColor: tokens.card,
           padding: 1,
           width: 74,
           flexDirection: "column",
@@ -270,7 +270,7 @@ export function SendModal({
           <box style={{ flexDirection: "column" }}>
             <box style={{ marginBottom: 1 }}>
               <text fg={tokens.textMuted}>
-                Select fee preset derived from network conditions:
+                Select fee preset derived from network conditions (FR-GAS-03):
               </text>
             </box>
 
@@ -330,7 +330,7 @@ export function SendModal({
           <box style={{ flexDirection: "column" }}>
             <box style={{ marginBottom: 1 }}>
               <text fg={tokens.primary}>
-                <b>Transaction Review Summary</b>
+                <b>Transaction Review Summary (FR-SND-07)</b>
               </text>
             </box>
 

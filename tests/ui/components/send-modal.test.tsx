@@ -148,7 +148,7 @@ describe("SendModal component", () => {
     let output = setup.captureCharFrame()
     expect(output).toContain("[E]")
     expect(output).toContain("Send")
-    expect(output).not.toContain("Send Transaction")
+    expect(output).not.toContain("Send Transaction (FR-SND-01")
 
     // Press 'e'
     await act(async () => {

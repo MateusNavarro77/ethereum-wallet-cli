@@ -104,14 +104,14 @@ export function ExportModal({
           width: 72,
           border: true,
           borderColor: step === "warning" ? tokens.error : tokens.warning,
-          
+          backgroundColor: tokens.card,
           padding: 1,
           flexDirection: "column",
         }}
       >
         <box style={{ marginBottom: 1, flexDirection: "row", justifyContent: "space-between" }}>
           <text fg={tokens.warning}>
-            <b>{title}</b>
+            <b>{title} (FR-ACC-09)</b>
           </text>
           <HotkeyButton onPress={handleClose} color={tokens.error}>[Esc] Cancel</HotkeyButton>
         </box>

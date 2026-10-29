@@ -236,7 +236,7 @@ describe("Account management UI", () => {
     await setup.renderOnce()
     const frame = setup.captureCharFrame()
 
-    expect(frame).toContain("Export Private Key for Account 1")
+    expect(frame).toContain("Export Private Key for Account 1 (FR-ACC-09)")
     expect(frame).toContain("Master Password")
     expect(frame).toContain("Confirm Authentication")
 

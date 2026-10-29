@@ -54,7 +54,7 @@ export function App() {
           style={{
             border: true,
             borderColor: tokens.borderActive,
-            backgroundColor: tokens.background,
+            backgroundColor: tokens.card,
             padding: 1,
             alignItems: "center",
           }}

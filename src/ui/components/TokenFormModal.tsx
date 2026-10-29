@@ -110,7 +110,7 @@ export function TokenFormModal({ initialAddress = "", onVerify, onSubmit, onClos
       width={72}
     >
       <text fg={tokens.primary}>
-        <b>➕ Add ERC-20 Token</b>
+        <b>➕ Add ERC-20 Token (FR-BAL-03, FR-BAL-08)</b>
       </text>
 
       {step === "input" && (

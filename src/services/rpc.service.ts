@@ -75,6 +75,10 @@ export class RpcService implements IRpcService {
     return this.network
   }
 
+  getPublicClient(): ReturnType<typeof createPublicClient> {
+    return this.client
+  }
+
   switchNetwork(network: NetworkConfig): void {
     this.network = network
     // If not using a fixed mock customClient from constructor, recreate publicClient

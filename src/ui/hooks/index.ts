@@ -8,4 +8,5 @@ export * from "./useMnemonicBackup.js"
 export * from "./useNetwork.js"
 export * from "./usePortfolio.js"
 export * from "./useTokens.js"
+export * from "./useSendTransaction.js"
 

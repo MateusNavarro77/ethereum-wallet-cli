@@ -202,3 +202,58 @@ export const PRESET_TOKENS: Record<number, TokenConfig[]> = {
     },
   ],
 }
+
+export type FeePresetLevel = "low" | "medium" | "high"
+
+export interface FeePreset {
+  level: FeePresetLevel
+  label: string
+  maxFeePerGas: bigint
+  maxPriorityFeePerGas: bigint
+  gasPrice?: bigint
+  estimatedWaitSeconds: number
+}
+
+export interface GasFeePresets {
+  isEip1559: boolean
+  presets: Record<FeePresetLevel, FeePreset>
+  baseFeePerGas?: bigint
+}
+
+export interface PrepareTransactionParams {
+  from: `0x${string}`
+  to: `0x${string}`
+  value: bigint
+  tokenAddress?: `0x${string}`
+  tokenDecimals?: number
+}
+
+export interface GasEstimateResult {
+  gasLimit: bigint
+  estimatedFeeWei: bigint
+  formattedFeeEth: string
+  presets: GasFeePresets
+}
+
+export interface SendTransactionParams {
+  account: Account
+  to: `0x${string}`
+  value: bigint
+  token?: TokenConfig
+  mnemonic?: string
+  masterPassword?: string
+  gasLimit?: bigint
+  maxFeePerGas?: bigint
+  maxPriorityFeePerGas?: bigint
+  gasPrice?: bigint
+  nonce?: number
+}
+
+export type TransactionStatus = "idle" | "broadcasting" | "pending" | "confirmed" | "failed"
+
+export interface TransactionReceiptSummary {
+  hash: `0x${string}`
+  status: "success" | "reverted"
+  blockNumber: bigint
+  gasUsed: bigint
+}

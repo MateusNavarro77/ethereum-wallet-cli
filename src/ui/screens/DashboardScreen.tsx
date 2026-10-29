@@ -9,6 +9,7 @@ import { AccountsModal } from "../components/AccountsModal.js"
 import { NetworksModal } from "../components/NetworksModal.js"
 import { TokensModal } from "../components/TokensModal.js"
 import { SettingsModal } from "../components/SettingsModal.js"
+import { SendModal } from "../components/SendModal.js"
 import { useTheme } from "../context.js"
 import {
   usePortfolio,
@@ -45,6 +46,7 @@ export interface DashboardScreenProps {
   onRemove?: (address: `0x${string}`) => Promise<void>
   onExportPrivateKey?: (address: `0x${string}`, passwordAttempt: string) => Promise<`0x${string}`>
   onExportMnemonic?: (passwordAttempt: string) => Promise<string>
+  masterPassword?: string
 }
 
 export function DashboardScreen({
@@ -61,6 +63,7 @@ export function DashboardScreen({
   onRemove,
   onExportPrivateKey,
   onExportMnemonic,
+  masterPassword,
 }: DashboardScreenProps) {
   const renderer = useRenderer()
   const { tokens } = useTheme()
@@ -69,6 +72,7 @@ export function DashboardScreen({
   const [showNetworksModal, setShowNetworksModal] = useState(false)
   const [showTokensModal, setShowTokensModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [showSendModal, setShowSendModal] = useState(false)
 
   const { notification, copyText, setNotification } = useClipboardNotification(3000)
 
@@ -132,12 +136,14 @@ export function DashboardScreen({
   )
 
   useKeyboard((key) => {
-    if (showResetModal || showAccountsModal || showNetworksModal || showTokensModal || showSettingsModal) return
+    if (showResetModal || showAccountsModal || showNetworksModal || showTokensModal || showSettingsModal || showSendModal) return
 
     if (key.name === "c" || key.name === "C") {
       if (!isAggregate) {
         handleCopy()
       }
+    } else if (key.name === "e" || key.name === "E") {
+      setShowSendModal(true)
     } else if (key.name === "r" || key.name === "R") {
       refreshPortfolio()
       refreshStatus()
@@ -494,6 +500,23 @@ export function DashboardScreen({
         <SettingsModal onClose={() => setShowSettingsModal(false)} />
       )}
 
+      {/* Send Transaction Stepper Modal */}
+      {showSendModal && (
+        <SendModal
+          account={account}
+          wallet={wallet}
+          masterPassword={masterPassword}
+          onClose={() => {
+            setShowSendModal(false)
+            refreshPortfolio()
+          }}
+          onSuccess={() => {
+            setNotification("✔ Transaction broadcast successfully!", 4000)
+            refreshPortfolio()
+          }}
+        />
+      )}
+
       {/* Reset Confirmation Modal */}
       {showResetModal ? (
         <ResetModal
@@ -508,6 +531,7 @@ export function DashboardScreen({
       {/* Fullscreen Footer */}
       <Footer notification={notification}>
         <box style={{ flexDirection: "row", gap: 1 }}>
+          <HotkeyButton onPress={() => setShowSendModal(true)} color={tokens.accent}>[E] Send</HotkeyButton>
           {!isAggregate ? <HotkeyButton onPress={handleCopy} color={tokens.textMuted}>[C] Copy</HotkeyButton> : null}
           <HotkeyButton onPress={toggleAggregate} color={tokens.secondary}>[P] {isAggregate ? "Single" : "Aggregate"}</HotkeyButton>
           <HotkeyButton onPress={() => setShowSettingsModal(true)} color={tokens.primary}>[S] Settings</HotkeyButton>

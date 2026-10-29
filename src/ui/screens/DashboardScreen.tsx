@@ -232,7 +232,7 @@ export function DashboardScreen({
             style={{
               border: true,
               borderColor: isAggregate ? tokens.secondary : tokens.success,
-              backgroundColor: tokens.card,
+              backgroundColor: tokens.background,
               padding: 1,
               flexDirection: "column",
               marginBottom: 1,
@@ -279,13 +279,13 @@ export function DashboardScreen({
             )}
           </box>
 
-          {/* Balance & Portfolio Card (FR-BAL-01 to FR-BAL-08) */}
+          {/* Balance & Portfolio Card */}
           <box
             title={isAggregate ? " Aggregate Balances & Portfolio " : " Balances & Portfolio "}
             style={{
               border: true,
               borderColor: tokens.borderActive,
-              backgroundColor: tokens.card,
+              backgroundColor: tokens.background,
               padding: 1,
               flexDirection: "column",
               marginBottom: 1,
@@ -303,7 +303,7 @@ export function DashboardScreen({
               <HotkeyButton onPress={toggleAggregate} color={tokens.secondary}>[P] {isAggregate ? "Single View" : "Aggregate"}</HotkeyButton>
             </box>
 
-            {/* ERC-20 Tokens List (FR-BAL-02) */}
+            {/* ERC-20 Tokens List */}
             <box style={{ flexDirection: "column", marginTop: 1, marginBottom: 1 }}>
               <box style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
                 <text fg={tokens.textMuted}>ERC-20 Tokens ({portfolioTokens.length}):</text>
@@ -326,7 +326,7 @@ export function DashboardScreen({
               ) : null}
             </box>
 
-            {/* Total Fiat Portfolio Value (FR-BAL-05) */}
+            {/* Total Fiat Portfolio Value */}
             {totalFiat ? (
               <box style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 1 }}>
                 <text fg={tokens.textMuted}>Est. Total Fiat Value:</text>
@@ -334,7 +334,7 @@ export function DashboardScreen({
               </box>
             ) : null}
 
-            {/* Refreshing & Timestamp Status (FR-BAL-04) */}
+            {/* Refreshing & Timestamp Status */}
             <box style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 1 }}>
               <text fg={isRefreshing ? tokens.warning : tokens.textSubtle}>
                 {isRefreshing
@@ -359,7 +359,7 @@ export function DashboardScreen({
             style={{
               border: true,
               borderColor: tokens.border,
-              backgroundColor: tokens.card,
+              backgroundColor: tokens.background,
               padding: 1,
               flexDirection: "column",
             }}
@@ -403,7 +403,7 @@ export function DashboardScreen({
           style={{
             border: true,
             borderColor: tokens.success,
-            backgroundColor: tokens.card,
+            backgroundColor: tokens.background,
             paddingX: 1,
             paddingY: 0,
             width: 44,
@@ -446,7 +446,7 @@ export function DashboardScreen({
         />
       )}
 
-      {/* Networks & RPC Modal (FR-NET-02 & FR-NET-03) */}
+      {/* Networks & RPC Modal */}
       {showNetworksModal && (
         <NetworksModal
           networks={allNetworks}
@@ -464,7 +464,7 @@ export function DashboardScreen({
         />
       )}
 
-      {/* ERC-20 Tokens Manager Modal (FR-BAL-02, FR-BAL-03, FR-BAL-07, FR-BAL-08) */}
+      {/* ERC-20 Tokens Manager Modal */}
       {showTokensModal && (
         <TokensModal
           tokens={allConfiguredTokens}

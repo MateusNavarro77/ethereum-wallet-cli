@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    name: Run CI
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: Build ${{ matrix.asset }}
+    needs: ci
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            asset: termiwallet-linux-x64
+          - runner: ubuntu-24.04-arm
+            asset: termiwallet-linux-arm64
+          - runner: macos-15-intel
+            asset: termiwallet-darwin-x64
+          - runner: macos-14
+            asset: termiwallet-darwin-arm64
+          - runner: windows-latest
+            asset: termiwallet-windows-x64.exe
+          - runner: windows-11-arm
+            asset: termiwallet-windows-arm64.exe
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build executable
+        run: bun run build
+
+      - name: Name release asset
+        shell: bash
+        run: cp "dist/termiwallet${{ endsWith(matrix.asset, '.exe') && '.exe' || '' }}" "dist/${{ matrix.asset }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout installer scripts
+        uses: actions/checkout@v4
+
+      - name: Download all executable artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Add installer scripts to release assets
+        run: cp install.sh uninstall.sh install.ps1 uninstall.ps1 release-assets/
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release-assets/*

@@ -81,7 +81,33 @@
 
 ### Installation
 
-Clone the repository and install dependencies using Bun:
+Install the latest release on macOS or Linux with:
+
+```sh
+curl -fsSL https://github.com/MateusNavarro77/ethereum-wallet-cli/releases/latest/download/install.sh | sh
+```
+
+On Windows, run this in PowerShell:
+
+```powershell
+irm https://github.com/MateusNavarro77/ethereum-wallet-cli/releases/latest/download/install.ps1 | iex
+```
+
+The installer downloads the executable for your platform, places it on your user PATH, and prints progress as it runs. Open a new terminal after installation if `termiwallet` is not recognized.
+
+To uninstall, use the matching command:
+
+```sh
+curl -fsSL https://github.com/MateusNavarro77/ethereum-wallet-cli/releases/latest/download/uninstall.sh | sh
+```
+
+```powershell
+irm https://github.com/MateusNavarro77/ethereum-wallet-cli/releases/latest/download/uninstall.ps1 | iex
+```
+
+Uninstalling removes the executable and asks separately whether to delete the wallet data directory (`~/.termiwallet`, or the path in `TERMIWALLET_HOME`). Deleting it permanently removes the encrypted wallet and account data and cannot be undone. Keep a verified recovery phrase or backup before confirming.
+
+For source installation, clone the repository and install dependencies using Bun:
 
 ```bash
 git clone https://github.com/MateusNavarro77/ethereum-wallet-cli.git
@@ -149,6 +175,10 @@ bun test tests/services/wallet.test.ts
 # Type-check without emitting files
 bun run typecheck
 ```
+
+## Releases
+
+Pushing a version tag such as `v0.3.0` runs the same typecheck and test workflow used by CI. Once those checks pass, GitHub Actions builds platform executables and publishes them with generated release notes. The install commands above always download the latest published release.
 
 ---
 

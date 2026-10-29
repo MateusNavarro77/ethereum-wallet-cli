@@ -1,181 +1,161 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+<p align="center">
+  <img src="screenshots/thumbnail.png" alt="TermiWallet Banner" width="720" />
+</p>
 
-<a name="readme-top"></a>
+<h1 align="center">TermiWallet</h1>
 
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
+<p align="center">
+  <strong>Non-custodial Ethereum wallet for your terminal.</strong><br>
+  A fast, keyboard-driven Text User Interface (TUI) built with Bun, TypeScript, and OpenTUI React.
+</p>
 
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-<div align="center">
+<p align="center">
+  <a href="https://bun.sh"><img src="https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white" alt="Bun" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-%2320232A.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" alt="React" /></a>
+  <a href="https://ethereum.org/"><img src="https://img.shields.io/badge/Ethereum-3C3C3D?style=for-the-badge&logo=ethereum&logoColor=white" alt="Ethereum" /></a>
+  <a href="https://viem.sh/"><img src="https://img.shields.io/badge/Viem-2.x-1E1E1E?style=for-the-badge&logo=ethereum&logoColor=white" alt="Viem" /></a>
+  <a href="https://github.com/opentui/opentui"><img src="https://img.shields.io/badge/OpenTUI-Terminal_UI-7928CA?style=for-the-badge" alt="OpenTUI" /></a>
+</p>
 
-![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
-![Ethereum](https://img.shields.io/badge/Ethereum-3C3C3D?style=for-the-badge&logo=Ethereum&logoColor=white)
-![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
-![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)
+---
 
-</div>
+## Overview
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/GreatApe77/ethereum-wallet-cli">
-    <img src="assets/logo.png" alt="Logo">
-  </a>
+**TermiWallet** is a feature-complete Ethereum wallet that runs entirely within the terminal as an interactive Text User Interface (TUI). Designed for developers and power users who value speed and keyboard workflow, TermiWallet enables managing multiple HD accounts, tracking portfolios and ERC-20 tokens, switching EVM networks, and dispatching transactions without leaving the terminal.
 
-  <h3 align="center">Termiwallet</h3>
+> [!IMPORTANT]
+> TermiWallet is strictly **non-custodial**. Your private keys and BIP-39 recovery phrases are generated, encrypted, and stored locally on your machine. They are never sent to external servers.
 
-  <p align="center">
-    A simple terminal cripto wallet for managing your finances.
-    <br />
-   
-    
-  </p>
-</div>
+---
 
-<!-- TABLE OF CONTENTS -->
+## Key Features
 
-<details>
+- 🔑 **Account & Key Management**
+  - BIP-39 mnemonic generation (12 or 24 words) with interactive backup verification.
+  - Hierarchical Deterministic (HD) derivation following BIP-44 (`m/44'/60'/0'/0/n`).
+  - Import wallets via seed phrase, raw private key, or encrypted JSON keystore file (Web3 Secret Storage v3).
+  - Support for watch-only accounts, custom local labels, and account hiding.
+  - Password-protected export for private keys and recovery phrases.
 
-<summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-    </li>
-    <li>
-      <a href="#built-with">Built With</a>
-    </li>
-    <li>
-      <a href="#getting-started-npm-package">Getting Started (NPM Package)</a>
-    </li>
-    <li>
-      <a href="#getting-started-source-code">Getting Started (Source Code)</a>
-    </li>
-    <li>
-      <a href="#getting-started-docker">Getting Started (Docker)</a>
-    </li>
-    <li>
-      <a href="#license">License</a>
-    </li>
-  </ol>
-</details>
+- 🛡️ **Vault Security**
+  - Encrypted at rest using **AES-256-GCM** with **PBKDF2** key derivation.
+  - Strict filesystem permissions (`0600`) enforced for the local vault file.
+  - Real-time password strength meter and quick vault reset capabilities.
 
-<!-- ABOUT THE PROJECT -->
+- 💸 **Send & Receive Transfers**
+  - Guided send stepper with real-time balance validation and recipient address checking.
+  - Dynamic gas estimation compliant with **EIP-1559** (Base Fee + Priority Fee).
+  - Transfer native ETH and configured ERC-20 tokens.
+  - Receive screen with interactive **in-terminal QR code rendering** and instant clipboard copying (supporting native clipboards and OSC 52 fallback).
 
-## About The Project
+- 🌐 **Multi-Network & Portfolio Tracking**
+  - Built-in support for Ethereum Mainnet and Sepolia Testnet.
+  - Custom EVM network manager (RPC endpoint, Chain ID, currency symbol, and block explorer).
+  - Automatic network latency, block height, and health checks.
+  - Live USD balance conversion with individual account or aggregated portfolio views.
 
-This is a simple terminal wallet for managing your finances. Its functionality is inspired by the popular Browser extension MetaMask, which allows users to interact with the Ethereum blockchain. This project is a terminal wallet that allows users to manage their finances in a similar way.
+- 🎨 **Visuals & Custom Theming**
+  - Responsive fullscreen layout built on OpenTUI React with ASCII FIGlet branding.
+  - Pre-configured color themes: *Termi Dark*, *Dracula*, *Cyberpunk*, *Nord*, *Monokai*, and *Matrix*.
+  - Seamless navigation driven entirely by keyboard shortcuts.
 
-<div>
-    <img src="assets/menu.png" alt="Logo" width="100%">
-</div>
+---
 
-### Built With
+## Screenshots
 
-<!-- * [![JQuery][JQuery.com]][JQuery-url]-->
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="Dashboard Screen" width="48%" />
+  &nbsp;
+  <img src="screenshots/accounts.png" alt="Accounts Management Modal" width="48%" />
+</p>
 
-- [Node.js](https://nodejs.org/en/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Ethers.js](https://docs.ethers.io/v6/)
-- [Inquirer.js](https://www.npmjs.com/package/inquirer)
-- [Chalk](https://www.npmjs.com/package/chalk)
-- [Figlet](https://www.npmjs.com/package/figlet)
+---
 
-<!-- GETTING STARTED -->
-
-## Getting Started (NPM Package)
-
-You can install the package globally and run it from the terminal
+## Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/)
-- [NPM](https://www.npmjs.com/)
+- [Bun](https://bun.sh/) (v1.1 or later recommended)
+- A terminal with Truecolor / ANSI support (e.g., Ghostty, Alacritty, iTerm2, Kitty, Windows Terminal)
 
 ### Installation
 
-1.  Install the package globally
+Clone the repository and install dependencies using Bun:
 
-    ```sh
-    npm install -g @great_ape77/ethereum-wallet-cli
-    ```
+```bash
+git clone https://github.com/MateusNavarro77/ethereum-wallet-cli.git
+cd ethereum-wallet-cli
+bun install
+```
 
-2.  Run the wallet
+### Running TermiWallet
 
-    ```sh
-    termiwallet
-    ```
+Start the terminal UI:
 
-## Getting Started (Source Code)
+```bash
+bun run start
+```
 
-To get started with this project, you can clone the repository and run the project locally
+On first launch, you will be prompted to create a new encrypted vault or import an existing wallet.
 
-### Prerequisites
+---
 
-- [Node.js](https://nodejs.org/en/)
-- [NPM](https://www.npmjs.com/)
+## Keyboard Shortcuts (Dashboard)
 
-### Installation
+Every action in the dashboard can be triggered via keyboard hotkeys:
 
-1.  Clone the repo
+| Key | Action |
+|:---:|---|
+| <kbd>E</kbd> | Open the transaction sender modal (*Send*) |
+| <kbd>C</kbd> | Copy active account address to clipboard |
+| <kbd>A</kbd> | Accounts manager (switch, add, import, export, rename, hide) |
+| <kbd>N</kbd> | Networks manager (switch network, add custom EVM RPC) |
+| <kbd>T</kbd> | Tokens manager (add and toggle ERC-20 tokens) |
+| <kbd>P</kbd> | Toggle between active account and aggregated portfolio view |
+| <kbd>R</kbd> | Refresh balances, fiat prices, and network status |
+| <kbd>S</kbd> | Settings modal (color theme selection) |
+| <kbd>[</kbd> / <kbd>]</kbd> | Cycle to previous / next visible account |
+| <kbd>X</kbd> | Reset vault (requires explicit confirmation) |
+| <kbd>Q</kbd> | Quit application |
 
-    ```sh
-    git clone https://github.com/GreatApe77/ethereum-wallet-cli
-    ```
+---
 
-2.  Change directory to the project folder
+## Environment Variables
 
-    ```sh
-    cd ethereum-wallet-cli
-    ```
+You can customize paths and network endpoints using environment variables:
 
-3.  Install NPM packages
+| Variable | Default | Description |
+|---|---|---|
+| `TERMIWALLET_HOME` | `~/.termiwallet` | Directory path where the encrypted vault file is stored. |
+| `SEPOLIA_RPC_URL` | Public node endpoint | Custom JSON-RPC endpoint URL for the Sepolia network. |
 
-    ```sh
-    npm install
-    ```
+> [!TIP]
+> For test automation or isolated sessions, point `TERMIWALLET_HOME=/tmp/test-vault` to run without modifying your primary wallet.
 
-4.  Run the project
+---
 
-    ```sh
-    npm run dev
-    ```
+## Development & Testing
 
-## Getting Started (Docker)
+TermiWallet uses strict TypeScript checks and includes unit and integration tests:
 
-To run the project using Docker, you can use the following commands
+```bash
+# Run the complete test suite
+bun test
 
-### Prerequisites
+# Run a specific test file
+bun test tests/services/wallet.test.ts
 
-You need to have Docker installed on your machine to run this project. You can download it from [here](https://www.docker.com/)
+# Type-check without emitting files
+bun run typecheck
+```
 
-### Install and execute
+---
 
-You will run the docker image in interactive mode to interact with the wallet
+## Architecture
 
-1. Build the docker image
+TermiWallet follows an Inversion of Control (IoC) pattern powered by a lightweight dependency injection container (`src/container/`):
 
-   ```sh
-   docker run -it ghcr.io/greatape77/ethereum-wallet-cli:latest
-   ```
-
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
-<!--
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
--->
+- **`src/core/`**: Domain models, service contracts (`interfaces.ts`), and typed service tokens.
+- **`src/services/`**: UI-independent core services (cryptography, HD wallet derivation, filesystem vault storage, RPC, and transactions).
+- **`src/ui/`**: OpenTUI React presentation layer consisting of screens, reusable components, theme providers, and state hooks.

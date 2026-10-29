@@ -1,19 +1,14 @@
-#!/usr/bin/env node
-import inquirer from "inquirer"
-import { walletAuthRoutine } from "./routines/walletAuthRoutine.js";
-import { mainMenuRoutine } from "./routines/mainMenuRoutine.js";
-import { printMainTitle } from "./printing/printMainTitle.js";
-import InterruptedPrompt from 'inquirer-interrupted-prompt';
-InterruptedPrompt.fromAll(inquirer)
+#!/usr/bin/env bun
+import { createDefaultContainer } from "./container/index.js"
+import { runUi } from "./ui/index.js"
 
 async function main() {
-  await printMainTitle()
-  await walletAuthRoutine();
-  await mainMenuRoutine();
-  //console.log(JSON.parse(jsonWallet));
+  const container = createDefaultContainer()
+  await runUi(container)
 }
 
 main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+  console.error("Fatal error starting TermiWallet:", err)
+  process.exit(1)
+})
+

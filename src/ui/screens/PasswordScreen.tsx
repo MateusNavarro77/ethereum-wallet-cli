@@ -1,0 +1,155 @@
+import { useKeyboard } from "@opentui/react"
+import { Header } from "../components/Header.js"
+import { Footer } from "../components/Footer.js"
+import { HotkeyButton } from "../components/HotkeyButton.js"
+import { LogoBanner } from "../components/LogoBanner.js"
+import { useTheme } from "../context.js"
+import { usePasswordForm } from "../hooks/index.js"
+
+interface PasswordScreenProps {
+  onComplete: (password: string) => void
+  onCancel?: () => void
+  title?: string
+}
+
+export function PasswordScreen({
+  onComplete,
+  onCancel,
+  title = "Set Master Password",
+}: PasswordScreenProps) {
+  const { tokens } = useTheme()
+  const {
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    focusedField,
+    setFocusedField,
+    toggleFocus,
+    errorMessage,
+    strength,
+    handleProceed,
+  } = usePasswordForm({ onComplete })
+
+  useKeyboard((key) => {
+    if (key.name === "tab" || key.name === "down" || key.name === "up") {
+      toggleFocus()
+    } else if (key.name === "return") {
+      if (focusedField === "password" && password.length >= 8) {
+        setFocusedField("confirm")
+      } else {
+        handleProceed()
+      }
+    } else if (key.name === "escape" && onCancel) {
+      onCancel()
+    }
+  })
+
+  return (
+    <box
+      style={{
+        width: "100%",
+        height: "100%",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        backgroundColor: tokens.background,
+      }}
+    >
+      <Header subtitle={title} />
+
+      <box
+        style={{
+          flexGrow: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+        }}
+      >
+        <box
+          style={{
+            flexDirection: "column",
+            border: true,
+            borderColor: tokens.borderActive,
+            backgroundColor: tokens.card,
+            padding: 1,
+            width: 68,
+          }}
+        >
+          <LogoBanner
+            subtitle={title}
+            description="Choose a secure password to encrypt your wallet vault locally."
+          />
+
+          {/* Password Field */}
+          <box
+            onMouseDown={() => setFocusedField("password")}
+            title=" Wallet Password "
+            style={{
+              border: true,
+              borderColor: focusedField === "password" ? tokens.borderActive : tokens.border,
+              height: 3,
+              marginBottom: 1,
+            }}
+          >
+            <input
+              placeholder="Enter master password (min 8 characters)..."
+              value={password}
+              onInput={setPassword}
+              onSubmit={handleProceed}
+              focused={focusedField === "password"}
+            />
+          </box>
+
+          {/* Confirm Password Field */}
+          <box
+            onMouseDown={() => setFocusedField("confirm")}
+            title=" Confirm Password "
+            style={{
+              border: true,
+              borderColor: focusedField === "confirm" ? tokens.borderActive : tokens.border,
+              height: 3,
+              marginBottom: 1,
+            }}
+          >
+            <input
+              placeholder="Re-enter password to confirm..."
+              value={confirmPassword}
+              onInput={setConfirmPassword}
+              onSubmit={handleProceed}
+              focused={focusedField === "confirm"}
+            />
+          </box>
+
+          {/* Strength & Feedback */}
+          <box style={{ flexDirection: "row", marginBottom: 1, gap: 1 }}>
+            <text fg={tokens.textMuted}>Strength: </text>
+            <text fg={strength.color}>{strength.bar}</text>
+            <text fg={strength.color}> ({strength.label})</text>
+          </box>
+
+          {errorMessage ? (
+            <box style={{ marginBottom: 1 }}>
+              <text fg={tokens.error}>⚠ {errorMessage}</text>
+            </box>
+          ) : null}
+
+          <box style={{ marginTop: 1, flexDirection: "row", justifyContent: "space-between" }}>
+            <box style={{ flexDirection: "row", gap: 1 }}>
+              <HotkeyButton onPress={toggleFocus} color={tokens.secondary}>[Tab] Switch field</HotkeyButton>
+              <HotkeyButton onPress={handleProceed} color={tokens.success}>[Enter] Continue</HotkeyButton>
+              {onCancel ? <HotkeyButton onPress={onCancel} color={tokens.textMuted}>[Esc] Back</HotkeyButton> : null}
+            </box>
+          </box>
+        </box>
+      </box>
+
+      <Footer>
+        <box style={{ flexDirection: "row", gap: 1 }}>
+          <HotkeyButton onPress={toggleFocus} color={tokens.secondary}>[Tab] Switch Field</HotkeyButton>
+          <HotkeyButton onPress={handleProceed} color={tokens.success}>[Enter] Continue</HotkeyButton>
+          {onCancel ? <HotkeyButton onPress={onCancel} color={tokens.error}>[Esc] Back</HotkeyButton> : null}
+        </box>
+      </Footer>
+    </box>
+  )
+}

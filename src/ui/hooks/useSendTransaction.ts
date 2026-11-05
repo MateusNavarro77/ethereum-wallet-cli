@@ -34,6 +34,11 @@ export interface UseSendTransactionResult {
   setSelectedPreset: (preset: FeePresetLevel) => void
   gasEstimate: GasEstimateResult | null
   isEstimatingGas: boolean
+  isValidating: boolean
+  validationMessage: string | null
+  confirmText: string
+  setConfirmText: (text: string) => void
+  confirmError: string | null
   txStatus: TransactionStatus
   txHash: `0x${string}` | null
   txError: string | null
@@ -85,6 +90,14 @@ export function useSendTransaction({
   const [gasEstimate, setGasEstimate] = useState<GasEstimateResult | null>(null)
   const [isEstimatingGas, setIsEstimatingGas] = useState(false)
 
+  const [isValidating, setIsValidating] = useState(false)
+  const isValidatingRef = useRef(false)
+  const [validationMessage, setValidationMessage] = useState<string | null>(null)
+
+  const [confirmText, setConfirmTextState] = useState("")
+  const confirmTextRef = useRef("")
+  const [confirmError, setConfirmError] = useState<string | null>(null)
+
   const [txStatus, setTxStatus] = useState<TransactionStatus>("idle")
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null)
   const [txError, setTxError] = useState<string | null>(null)
@@ -112,6 +125,12 @@ export function useSendTransaction({
     amountRef.current = val
     setAmountState(val)
     setAmountError(null)
+  }, [])
+
+  const setConfirmText = useCallback((val: string) => {
+    confirmTextRef.current = val
+    setConfirmTextState(val)
+    setConfirmError(null)
   }, [])
 
   const setSelectedToken = useCallback((token: TokenConfig | null) => {
@@ -246,6 +265,8 @@ export function useSendTransaction({
 
   // Navigate to next step with validation
   const nextStep = useCallback(async (): Promise<boolean> => {
+    if (isValidatingRef.current) return false
+
     const currentStep = stepRef.current
     const currentRec = recipientRef.current.trim()
     const currentTok = selectedTokenRef.current
@@ -268,10 +289,19 @@ export function useSendTransaction({
         return false
       }
 
-      await fetchBalances()
-      await refreshGasEstimate(currentRec)
-      setStep("amount")
-      return true
+      isValidatingRef.current = true
+      setIsValidating(true)
+      setValidationMessage("Validating recipient & fetching account balances...")
+      try {
+        await fetchBalances()
+        await refreshGasEstimate(currentRec)
+        setStep("amount")
+        return true
+      } finally {
+        isValidatingRef.current = false
+        setIsValidating(false)
+        setValidationMessage(null)
+      }
     }
 
     if (currentStep === "amount") {
@@ -316,12 +346,22 @@ export function useSendTransaction({
         }
       }
 
-      await refreshGasEstimate(currentRec, parsedWei)
-      setStep("gas")
-      return true
+      isValidatingRef.current = true
+      setIsValidating(true)
+      setValidationMessage("Validating amount & estimating network gas fees...")
+      try {
+        await refreshGasEstimate(currentRec, parsedWei)
+        setStep("gas")
+        return true
+      } finally {
+        isValidatingRef.current = false
+        setIsValidating(false)
+        setValidationMessage(null)
+      }
     }
 
     if (currentStep === "gas") {
+      setConfirmText("")
       setStep("review")
       return true
     }
@@ -337,16 +377,21 @@ export function useSendTransaction({
     rpcService,
     activeNetwork.symbol,
     setRecipient,
+    setConfirmText,
     setStep,
   ])
 
   // Navigate to previous step
   const prevStep = useCallback(() => {
+    if (isValidatingRef.current) return
     const currentStep = stepRef.current
     if (currentStep === "amount") setStep("recipient-asset")
     else if (currentStep === "gas") setStep("amount")
-    else if (currentStep === "review") setStep("gas")
-  }, [setStep])
+    else if (currentStep === "review") {
+      setConfirmText("")
+      setStep("gas")
+    }
+  }, [setStep, setConfirmText])
 
   // Confirm and broadcast (FR-SND-08 & FR-SND-09)
   const confirmAndBroadcast = useCallback(async (): Promise<`0x${string}` | undefined> => {
@@ -357,6 +402,12 @@ export function useSendTransaction({
       return undefined
     }
 
+    if (confirmTextRef.current.trim().toLowerCase() !== "confirm") {
+      setConfirmError('Please type "confirm" to sign and broadcast')
+      return undefined
+    }
+
+    setConfirmError(null)
     setTxStatus("broadcasting")
     setTxError(null)
     setStep("status")
@@ -426,17 +477,22 @@ export function useSendTransaction({
   ])
 
   const reset = useCallback(() => {
+    isValidatingRef.current = false
+    setIsValidating(false)
+    setValidationMessage(null)
     setStep("recipient-asset")
     setSelectedToken(null)
     setRecipient("")
     setRecipientError(null)
     setAmount("")
     setAmountError(null)
+    setConfirmText("")
+    setConfirmError(null)
     setSelectedPreset("medium")
     setTxStatus("idle")
     setTxHash(null)
     setTxError(null)
-  }, [setStep, setSelectedToken, setRecipient, setAmount])
+  }, [setStep, setSelectedToken, setRecipient, setAmount, setConfirmText])
 
   return {
     step,
@@ -453,6 +509,11 @@ export function useSendTransaction({
     setSelectedPreset,
     gasEstimate,
     isEstimatingGas,
+    isValidating,
+    validationMessage,
+    confirmText,
+    setConfirmText,
+    confirmError,
     txStatus,
     txHash,
     txError,

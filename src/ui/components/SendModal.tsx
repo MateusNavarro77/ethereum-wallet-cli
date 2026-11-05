@@ -36,6 +36,11 @@ export function SendModal({
     selectedPreset,
     setSelectedPreset,
     gasEstimate,
+    isValidating,
+    validationMessage,
+    confirmText,
+    setConfirmText,
+    confirmError,
     txStatus,
     txHash,
     txError,
@@ -80,9 +85,16 @@ export function SendModal({
   }, [confirmAndBroadcast])
 
   useKeyboard((key) => {
+    if (isValidating) {
+      return
+    }
+
+    const isEnter = key.name === "return" || key.name === "linefeed"
+
     if (step === "status") {
       if (txStatus === "confirmed" || txStatus === "failed") {
-        if (key.name === "escape" || key.name === "return" || key.name === "q") {
+        if (key.name === "escape" || isEnter || key.name === "q") {
+          key.preventDefault()
           onClose()
         }
       }
@@ -90,6 +102,7 @@ export function SendModal({
     }
 
     if (key.name === "escape") {
+      key.preventDefault()
       if (step === "recipient-asset") {
         onClose()
       } else {
@@ -100,12 +113,18 @@ export function SendModal({
 
     if (step === "recipient-asset") {
       if (key.name === "tab") {
+        key.preventDefault()
         cycleAsset()
-      } else if (key.name === "return") {
+      } else if (isEnter) {
+        key.preventDefault()
         handleNext()
       }
     } else if (step === "amount") {
-      if (key.name === "return") {
+      if (key.name === "m" || key.name === "M") {
+        key.preventDefault()
+        applySendMax()
+      } else if (isEnter) {
+        key.preventDefault()
         handleNext()
       }
     } else if (step === "gas") {
@@ -123,17 +142,24 @@ export function SendModal({
         const order: FeePresetLevel[] = ["low", "medium", "high"]
         const curr = order.indexOf(selectedPreset)
         setSelectedPreset(order[(curr + 1) % order.length])
-      } else if (key.name === "return") {
+      } else if (isEnter) {
+        key.preventDefault()
         handleNext()
       }
     } else if (step === "review") {
-      if (key.name === "return" || key.name === "c" || key.name === "C") {
+      if (isEnter) {
+        key.preventDefault()
         handleConfirm()
-      } else if (key.name === "b" || key.name === "B") {
-        prevStep()
       }
     }
   })
+
+  const senderBadge =
+    account.type === "hd"
+      ? `[HD-${account.index ?? 0}]`
+      : account.type === "imported"
+        ? "[Imported]"
+        : "[Watch-Only]"
 
   const assetSymbol = selectedToken ? selectedToken.symbol : activeNetworkSymbol
   const formattedAvailableBalance = selectedToken
@@ -171,6 +197,28 @@ export function SendModal({
         {/* STEP 1: ASSET & RECIPIENT */}
         {step === "recipient-asset" && (
           <box style={{ flexDirection: "column" }}>
+            <box
+              style={{
+                marginBottom: 1,
+                paddingLeft: 1,
+                paddingRight: 1,
+                border: true,
+                borderColor: tokens.border,
+                backgroundColor: tokens.surface,
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <box style={{ flexDirection: "row" }}>
+                <text fg={tokens.textMuted}>From Account: </text>
+                <text fg={tokens.warning}><b>{senderBadge} </b></text>
+                <text fg={tokens.text}><b>{account.label}</b></text>
+              </box>
+              <text fg={tokens.textMuted}>
+                {account.address.slice(0, 6)}...{account.address.slice(-4)}
+              </text>
+            </box>
+
             <box style={{ marginBottom: 1, justifyContent: "space-between" }}>
               <box style={{ flexDirection: "row" }}>
                 <text fg={tokens.text}>Asset: </text>
@@ -195,10 +243,17 @@ export function SendModal({
             >
               <input
                 value={recipient}
-                onChange={setRecipient}
+                onInput={setRecipient}
                 placeholder="0x..."
+                focused={!isValidating}
               />
             </box>
+
+            {isValidating && validationMessage && (
+              <box style={{ marginBottom: 1 }}>
+                <text fg={tokens.warning}>⟳ {validationMessage}</text>
+              </box>
+            )}
 
             {recipientError && (
               <box style={{ marginBottom: 1 }}>
@@ -211,8 +266,8 @@ export function SendModal({
                 [Esc] Cancel
               </HotkeyButton>
               <box style={{ marginLeft: 1 }}>
-                <HotkeyButton onPress={handleNext} color={tokens.primary}>
-                  [Enter] Next: Amount
+                <HotkeyButton onPress={handleNext} color={isValidating ? tokens.textMuted : tokens.primary}>
+                  {isValidating ? "Validating..." : "[Enter] Next: Amount"}
                 </HotkeyButton>
               </box>
             </box>
@@ -243,10 +298,17 @@ export function SendModal({
             >
               <input
                 value={amount}
-                onChange={setAmount}
+                onInput={setAmount}
                 placeholder="0.0"
+                focused={!isValidating}
               />
             </box>
+
+            {isValidating && validationMessage && (
+              <box style={{ marginBottom: 1 }}>
+                <text fg={tokens.warning}>⟳ {validationMessage}</text>
+              </box>
+            )}
 
             {amountError && (
               <box style={{ marginBottom: 1 }}>
@@ -258,8 +320,8 @@ export function SendModal({
               <HotkeyButton onPress={prevStep} color={tokens.textMuted}>
                 [Esc] Back
               </HotkeyButton>
-              <HotkeyButton onPress={handleNext} color={tokens.primary}>
-                [Enter] Next: Gas Fee
+              <HotkeyButton onPress={handleNext} color={isValidating ? tokens.textMuted : tokens.primary}>
+                {isValidating ? "Validating..." : "[Enter] Next: Gas Fee"}
               </HotkeyButton>
             </box>
           </box>
@@ -392,12 +454,43 @@ export function SendModal({
               </box>
             </box>
 
-            {account.type === "watch-only" && (
+            {account.type === "watch-only" ? (
               <box style={{ marginBottom: 1, padding: 1, backgroundColor: tokens.error }}>
                 <text fg={tokens.textInverse}>
                   <b>⚠ WATCH-ONLY ACCOUNT: Signing is blocked for this account.</b>
                 </text>
               </box>
+            ) : (
+              <>
+                <box style={{ marginBottom: 1 }}>
+                  <text fg={tokens.text}>
+                    Type <span fg={tokens.warning}><b>confirm</b></span> and press Enter to sign and broadcast:
+                  </text>
+                </box>
+
+                <box
+                  title=' Type "confirm" to Sign & Broadcast '
+                  style={{
+                    border: true,
+                    borderColor: confirmError ? tokens.error : tokens.borderActive,
+                    height: 3,
+                    marginBottom: 1,
+                  }}
+                >
+                  <input
+                    value={confirmText}
+                    onInput={setConfirmText}
+                    placeholder="confirm"
+                    focused={true}
+                  />
+                </box>
+
+                {confirmError && (
+                  <box style={{ marginBottom: 1 }}>
+                    <text fg={tokens.error}>✖ {confirmError}</text>
+                  </box>
+                )}
+              </>
             )}
 
             <box style={{ marginTop: 1, justifyContent: "space-between" }}>

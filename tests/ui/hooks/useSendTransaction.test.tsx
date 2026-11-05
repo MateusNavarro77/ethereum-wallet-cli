@@ -325,7 +325,17 @@ describe("useSendTransaction hook", () => {
     })
     expect(hdHook.step).toBe("review")
 
+    // Attempting to broadcast without typing "confirm" is blocked with confirmError
     await act(async () => {
+      const res = await hdHook.confirmAndBroadcast()
+      expect(res).toBeUndefined()
+    })
+    expect(hdHook.step).toBe("review")
+    expect(hdHook.confirmError).toBe('Please type "confirm" to sign and broadcast')
+
+    // Typing "confirm" allows broadcast to proceed
+    await act(async () => {
+      hdHook.setConfirmText("confirm")
       await hdHook.confirmAndBroadcast()
     })
 
@@ -333,5 +343,59 @@ describe("useSendTransaction hook", () => {
     expect(hdHook.txStatus).toBe("confirmed")
     expect(successHash).toBe(hdHook.txHash)
     hdSetup.renderer.destroy()
+  })
+
+  it("exposes isValidating and validationMessage during async step validation", async () => {
+    let resolveBalance!: (val: bigint) => void
+    const container = setupMockContainer()
+    const baseRpc = container.resolve<any>("rpcService")
+    container.registerInstance("rpcService", {
+      ...baseRpc,
+      getBalance: () =>
+        new Promise<bigint>((resolve) => {
+          resolveBalance = resolve
+        }),
+    } as any)
+
+    let hook: any
+    function Harness() {
+      hook = useSendTransaction({
+        account: hdAccount,
+        wallet: { accounts: [hdAccount], mnemonic: dummyMnemonic, defaultChainId: 11155111 },
+      })
+      return <text>{hook.step}</text>
+    }
+
+    const setup = await testRender(
+      <ContainerProvider container={container}>
+        <Harness />
+      </ContainerProvider>,
+    )
+
+    // Resolve initial mount fetchBalances
+    await act(async () => {
+      resolveBalance(1_000_000_000_000_000_000n)
+    })
+
+    let nextStepPromise!: Promise<boolean>
+    await act(async () => {
+      hook.setRecipient(validRecipient)
+      nextStepPromise = hook.nextStep()
+    })
+
+    expect(hook.isValidating).toBe(true)
+    expect(hook.validationMessage).toContain("Validating recipient")
+    expect(hook.step).toBe("recipient-asset")
+
+    await act(async () => {
+      resolveBalance(1_000_000_000_000_000_000n)
+      await nextStepPromise
+    })
+
+    expect(hook.isValidating).toBe(false)
+    expect(hook.validationMessage).toBeNull()
+    expect(hook.step).toBe("amount")
+
+    setup.renderer.destroy()
   })
 })

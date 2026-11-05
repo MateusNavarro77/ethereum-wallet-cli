@@ -125,7 +125,155 @@ describe("SendModal component", () => {
     expect(output).toContain("[2] Amount")
     expect(output).toContain("[3] Gas Fee")
     expect(output).toContain("[4] Review")
+    expect(output).toContain("From Account:")
+    expect(output).toContain("[HD-0]")
+    expect(output).toContain("Primary Vault")
+    expect(output).toContain("0x9854...85b9")
     expect(output).toContain("Recipient Address")
+
+    setup.renderer.destroy()
+  })
+
+  it("advances through steps with a single Enter press and requires typing 'confirm' in Review", async () => {
+    const container = createMockContainer()
+    let broadcastedHash: string | undefined
+
+    const setup = await testRender(
+      <ContainerProvider container={container}>
+        <SendModal
+          account={sampleAccount}
+          wallet={sampleWallet}
+          onClose={() => {}}
+          onSuccess={(hash) => {
+            broadcastedHash = hash
+          }}
+        />
+      </ContainerProvider>,
+      { width: 100, height: 35 },
+    )
+
+    await setup.renderOnce()
+
+    // Step 1: Type recipient address into focused input and press Enter ONCE
+    await act(async () => {
+      await setup.mockInput.typeText("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
+    })
+    await setup.renderOnce()
+
+    await act(async () => {
+      setup.mockInput.pressEnter()
+    })
+    await setup.renderOnce()
+
+    let output = setup.captureCharFrame()
+    expect(output).toContain("Available Balance:")
+    expect(output).toContain("[M] Send Max")
+
+    // Step 2: Type amount into focused input and press Enter ONCE
+    await act(async () => {
+      await setup.mockInput.typeText("0.5")
+    })
+    await setup.renderOnce()
+
+    await act(async () => {
+      setup.mockInput.pressEnter()
+    })
+    await setup.renderOnce()
+
+    output = setup.captureCharFrame()
+    expect(output).toContain("Select fee preset derived from network conditions:")
+
+    // Step 3: Press Enter ONCE to advance to Review
+    await act(async () => {
+      setup.mockInput.pressEnter()
+    })
+    await setup.renderOnce()
+
+    output = setup.captureCharFrame()
+    expect(output).toContain("Transaction Review Summary")
+    expect(output).toContain('Type "confirm" to Sign & Broadcast')
+
+    // Step 4: Pressing Enter without typing "confirm" shows confirmation error
+    await act(async () => {
+      setup.mockInput.pressEnter()
+    })
+    await setup.renderOnce()
+
+    output = setup.captureCharFrame()
+    expect(output).toContain('Please type "confirm" to sign and broadcast')
+    expect(broadcastedHash).toBeUndefined()
+
+    // Type "confirm" and press Enter ONCE to sign and broadcast
+    await act(async () => {
+      await setup.mockInput.typeText("confirm")
+    })
+    await setup.renderOnce()
+
+    await act(async () => {
+      setup.mockInput.pressEnter()
+    })
+    await setup.renderOnce()
+
+    output = setup.captureCharFrame()
+    expect(output).toContain("Transaction Confirmed on Chain!")
+    expect(broadcastedHash).toBeDefined()
+
+    setup.renderer.destroy()
+  })
+
+  it("shows validation loading state between steps while RPC checks are pending", async () => {
+    let resolveGas!: (val: any) => void
+    const container = createMockContainer()
+    const baseTx = container.resolve<any>("transactionService")
+    let interceptGas = false
+
+    container.registerInstance("transactionService", {
+      ...baseTx,
+      estimateGas: (...args: any[]) => {
+        if (!interceptGas) {
+          return baseTx.estimateGas(...args)
+        }
+        return new Promise((resolve) => {
+          resolveGas = resolve
+        })
+      },
+    } as any)
+
+    const setup = await testRender(
+      <ContainerProvider container={container}>
+        <SendModal
+          account={sampleAccount}
+          wallet={sampleWallet}
+          onClose={() => {}}
+        />
+      </ContainerProvider>,
+      { width: 100, height: 35 },
+    )
+
+    await setup.renderOnce()
+    interceptGas = true
+
+    await act(async () => {
+      await setup.mockInput.typeText("0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045")
+    })
+    await setup.renderOnce()
+
+    await act(async () => {
+      setup.mockInput.pressEnter()
+    })
+    await setup.renderOnce()
+
+    let output = setup.captureCharFrame()
+    expect(output).toContain("Validating recipient & fetching account balances...")
+    expect(output).toContain("Validating...")
+
+    await act(async () => {
+      resolveGas(await baseTx.estimateGas())
+    })
+    await setup.renderOnce()
+
+    output = setup.captureCharFrame()
+    expect(output).toContain("Available Balance:")
 
     setup.renderer.destroy()
   })
